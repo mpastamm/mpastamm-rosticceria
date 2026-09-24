@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingBag, Search, User, Menu, X } from 'lucide-react';
 import { BusinessSettings } from '../types';
+import mpastammLogo from '../assets/images/mpastamm_logo_white.ts';
 
 interface HeaderProps {
   cartCount: number;
@@ -60,12 +61,14 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={() => handleNav('/')}
-            className="flex flex-col items-start text-left focus:outline-none group"
-            aria-label="Mpastamm"
+            className="flex items-center text-left focus:outline-none group"
+            aria-label="Mpastamm - officina dei lievitati"
           >
-            <span className="font-script text-3xl sm:text-[2.15rem] text-[#FAF7F2] leading-none tracking-wide group-hover:text-[#D4C3A3] transition-colors">
-              Mpastamm
-            </span>
+            <img
+              src={mpastammLogo}
+              alt="Mpastamm - officina dei lievitati"
+              className="block w-[7.8rem] sm:w-[9.2rem] h-auto object-contain transition-opacity group-hover:opacity-80"
+            />
           </button>
         </div>
 
