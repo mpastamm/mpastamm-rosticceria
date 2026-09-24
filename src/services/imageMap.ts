@@ -1,9 +1,9 @@
 import heroVenueImg from '@/src/assets/images/hero_mpastamm_garden.png';
-import saltimboccaPanuozzoImg from '@/src/assets/images/saltimbocca_panuozzo_1790236249425.jpg';
-import bunGourmetChickenImg from '@/src/assets/images/bun_gourmet_chicken_1790236267095.jpg';
-import rutielloRolledSwirlImg from '@/src/assets/images/rutiello_rolled_swirl_1790236285719.jpg';
-import padellinoFocacciaImg from '@/src/assets/images/padellino_focaccia_square_1790236300790.jpg';
-import friggitoriaPlatterImg from '@/src/assets/images/friggitoria_crocche_arancini_1790236315521.jpg';
+import saltimboccaPanuozzoImg from '@/src/assets/images/card_saltimbocca_mpastamm.png';
+import bunGourmetChickenImg from '@/src/assets/images/card_bun_mpastamm.png';
+import rutielloRolledSwirlImg from '@/src/assets/images/card_rutiello_mpastamm.png';
+import padellinoFocacciaImg from '@/src/assets/images/card_padellino_mpastamm.png';
+import friggitoriaPlatterImg from '@/src/assets/images/card_friggitoria_mpastamm.png';
 import tecaCountertopImg from '@/src/assets/images/mpastamm_teca_countertop_1790236473318.jpg';
 
 export const ASSET_IMAGES = {

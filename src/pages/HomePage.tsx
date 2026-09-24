@@ -103,7 +103,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             <img
               src={ASSET_IMAGES.hero}
               alt="Mpastamm Rosticceria Interno e Vetrina"
-              className="w-full h-full object-cover object-[center_27%] brightness-[0.98] contrast-[1.02]"
+              className="w-full h-full object-cover object-[center_18%] brightness-[0.98] contrast-[1.02]"
             />
             {/* Subtle soft gradient overlay to ensure text contrast while retaining full venue look */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#F2ECE1]/98 via-[#F2ECE1]/83 from-0% via-[35%] to-transparent lg:w-[62%]" />
@@ -141,18 +141,6 @@ export const HomePage: React.FC<HomePageProps> = ({
               </div>
             </div>
 
-            {/* Right Side Vertical Typographic Branding matching screenshot */}
-            <div className="hidden md:flex flex-col items-end text-right space-y-1 select-none pr-2 lg:pr-8">
-              <span className="font-script text-3xl lg:text-[2.6rem] text-[#16251A] drop-shadow-xs">
-                Mpastamm
-              </span>
-              <div className="text-[10px] lg:text-[11px] font-bold tracking-[0.25em] text-[#332C24] leading-relaxed flex flex-col items-end">
-                <span>SAPORI</span>
-                <span>AUTENTICI</span>
-                <span>PERSONE</span>
-                <span>VERE</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
