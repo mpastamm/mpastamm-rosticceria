@@ -1,0 +1,6 @@
+{
+  "name": "'Mpastamm - Rosticceria Contemporanea",
+  "description": "Vetrina digitale artigianale e gestione ordini per la rosticceria 'Mpastamm. Prodotti caldi da forno, saltimbocca, bun e friggitoria.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
