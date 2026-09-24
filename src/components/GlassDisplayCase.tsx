@@ -42,14 +42,14 @@ export const GlassDisplayCase: React.FC<GlassDisplayCaseProps> = ({
         <div className="absolute top-[8%] left-[21%] h-12 w-12 rounded-full bg-amber-100/40 blur-lg pointer-events-none" />
         <div className="absolute top-[8%] right-[21%] h-12 w-12 rounded-full bg-amber-100/40 blur-lg pointer-events-none" />
 
-        {/* INTERIOR DISPLAY CHAMBER - WHERE FOOD PRODUCT SITS */}
-        <div className="absolute top-[16%] bottom-[27%] left-[14%] right-[14%] flex items-center justify-center overflow-hidden rounded-md border border-white/35 bg-[#F1E7D3]/35 shadow-[inset_0_0_18px_rgba(255,247,214,0.34)]">
+        {/* INTERIOR DISPLAY CHAMBER - BETWEEN THE LED STRIP AND THE THIN WOOD SUPPORT */}
+        <div className="absolute top-[29%] bottom-[24%] left-[14%] right-[14%] flex items-center justify-center overflow-hidden rounded-md border border-white/35 bg-[#F1E7D3]/20 shadow-[inset_0_0_18px_rgba(255,247,214,0.28)]">
           {image ? (
-            <div className="relative flex h-full w-full items-center justify-center p-1.5">
+            <div className="relative flex h-full w-full items-center justify-center p-1">
               <img
                 src={image}
                 alt={name}
-                className={`h-full w-full rounded object-cover shadow-[0_4px_10px_rgba(64,39,21,0.28)] transition-transform duration-500 group-hover:scale-[1.03] ${
+                className={`h-full w-full rounded object-cover object-[center_58%] shadow-[0_4px_10px_rgba(64,39,21,0.28)] transition-transform duration-500 group-hover:scale-[1.03] ${
                   isSoldOut ? 'grayscale contrast-75 opacity-40' : ''
                 }`}
               />

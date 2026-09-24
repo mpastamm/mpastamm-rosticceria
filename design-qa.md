@@ -49,7 +49,8 @@ The source mockup and the live Chrome implementation were opened and inspected d
 6. Display-case and board refinement pass: changed the category layout to a shared six-column grid so all five category boards use the same width, height, and product-card rhythm; centered Padellino and Friggitoria on the second row.
 7. Teca refinement pass: changed product cases to a 5:4 proportion, strengthened the warm internal spotlights and glass-pane treatment, kept the product inset inside the chamber, and rechecked both rows in Chrome at `http://127.0.0.1:3013/`.
 8. Teca direction correction: replaced the previous display-case asset with the approved square, perfectly frontal glass box and switched the display frame to a square ratio. The latest Chrome spot-check at `http://127.0.0.1:3014/` shows the food image inside the glass, the thin pale-wood support, and no bulky cabinet base.
-9. No actionable P0/P1/P2 findings remain.
+9. Product framing correction: moved the product image window down into the actual central chamber, reduced its bounds to the glass opening, and adjusted the crop position so the photo no longer overlaps the light strip or support shelf. Latest Chrome verification at `http://127.0.0.1:3015/` confirms the product sits correctly inside the teca.
+10. No actionable P0/P1/P2 findings remain.
 
 ## Implementation Checklist
 
@@ -58,6 +59,7 @@ The source mockup and the live Chrome implementation were opened and inspected d
 - [x] Desktop live render verified in actual Chrome.
 - [x] Hero crop rechecked after the visual fix.
 - [x] Approved square frontal glass-box teca rendered with the thin light-wood support.
+- [x] Product photos constrained to the central teca chamber, below the LED strip and above the thin support shelf.
 - [x] TypeScript lint passed with `npm run lint`.
 - [x] Production build passed with `npm run build`.
 - [ ] Optional follow-up: capture a dedicated mobile/tablet QA pass when viewport emulation is available.
