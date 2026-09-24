@@ -85,6 +85,9 @@ export interface BusinessSettings {
   phone: string;
   whatsapp_notification_phone: string;
   instagram_handle: string;
+  instagram_url?: string;
+  facebook_url?: string;
+  tiktok_url?: string;
   orders_enabled: boolean; // Interruttore PRENOTAZIONI ATTIVE
   orders_disabled_message: string;
   next_day_orders_allowed: boolean;
