@@ -367,14 +367,14 @@ export const INITIAL_PRODUCTS: Product[] = [
     slug: 'chips-homemade',
     description: 'Patate fresche tagliate sottilissime, fritte dorate e salate al punto giusto.',
     ingredients: 'Homemade patate fresche.',
-    price: 3.5, // Prezzo iniziale configurabile dall'admin come da prompt
+    price: 0, // Prezzo da impostare dall'admin prima della pubblicazione
     image_url: ASSET_IMAGES.friggitoria,
     availability_status: 'available',
     stock_management_enabled: false,
     stock_quantity: 40,
     featured: false,
     badge: 'none',
-    visible: true,
+    visible: false,
     display_order: 6,
   },
 ];

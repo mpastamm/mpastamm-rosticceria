@@ -7,7 +7,8 @@ export const isSupabaseConfigured = Boolean(
   supabaseUrl &&
   supabaseAnonKey &&
   supabaseUrl !== 'https://your-project.supabase.co' &&
-  !supabaseUrl.includes('your-project')
+  !supabaseUrl.includes('your-project') &&
+  supabaseAnonKey !== 'your-anon-public-key'
 );
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured

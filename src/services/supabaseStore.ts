@@ -20,6 +20,12 @@ function isReady() {
   return isSupabaseConfigured && Boolean(supabase);
 }
 
+async function hasAuthenticatedSession(): Promise<boolean> {
+  if (!isReady() || !supabase) return false;
+  const { data } = await supabase.auth.getSession();
+  return Boolean(data.session);
+}
+
 function withoutItems(order: Order) {
   const { items: _items, ...orderRow } = order;
   return orderRow;
@@ -79,25 +85,25 @@ export async function fetchRemoteSnapshot(): Promise<RemoteStoreSnapshot | null>
 }
 
 export async function syncCategories(categories: Category[]) {
-  if (!isReady() || !supabase || categories.length === 0) return;
+  if (!isReady() || !supabase || categories.length === 0 || !(await hasAuthenticatedSession())) return;
   const { error } = await supabase.from('categories').upsert(categories);
   if (error) throw error;
 }
 
 export async function deleteRemoteCategory(id: string) {
-  if (!isReady() || !supabase) return;
+  if (!isReady() || !supabase || !(await hasAuthenticatedSession())) return;
   const { error } = await supabase.from('categories').delete().eq('id', id);
   if (error) throw error;
 }
 
 export async function syncProducts(products: Product[]) {
-  if (!isReady() || !supabase || products.length === 0) return;
+  if (!isReady() || !supabase || products.length === 0 || !(await hasAuthenticatedSession())) return;
   const { error } = await supabase.from('products').upsert(products);
   if (error) throw error;
 }
 
 export async function deleteRemoteProduct(id: string) {
-  if (!isReady() || !supabase) return;
+  if (!isReady() || !supabase || !(await hasAuthenticatedSession())) return;
   const { error } = await supabase.from('products').delete().eq('id', id);
   if (error) throw error;
 }
@@ -115,19 +121,19 @@ export async function syncOrders(orders: Order[]) {
 }
 
 export async function syncSettings(settings: BusinessSettings) {
-  if (!isReady() || !supabase) return;
+  if (!isReady() || !supabase || !(await hasAuthenticatedSession())) return;
   const { error } = await supabase.from('business_settings').upsert(settings);
   if (error) throw error;
 }
 
 export async function syncOpeningHours(hours: OpeningHourDay[]) {
-  if (!isReady() || !supabase || hours.length === 0) return;
+  if (!isReady() || !supabase || hours.length === 0 || !(await hasAuthenticatedSession())) return;
   const { error } = await supabase.from('opening_hours').upsert(hours);
   if (error) throw error;
 }
 
 export async function uploadProductImage(blob: Blob): Promise<string | null> {
-  if (!isReady() || !supabase) return null;
+  if (!isReady() || !supabase || !(await hasAuthenticatedSession())) return null;
   const path = `products/${crypto.randomUUID()}.jpg`;
   const { error } = await supabase.storage.from('product-images').upload(path, blob, {
     contentType: 'image/jpeg',
