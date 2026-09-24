@@ -202,11 +202,10 @@ export const HomePage: React.FC<HomePageProps> = ({
             )}
           </div>
         ) : (
-          /* DEFAULT: THE EXACT 5-MODULE SHOWCASE LAYOUT FROM SCREENSHOT */
-          <div className="space-y-6 sm:space-y-8">
-            {/* ROW 1: 3 EQUAL COLUMNS (SALTIMBOCCA, BUN, RUTIELLO 2.0) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          /* DEFAULT: FIVE UNIFORM CATEGORY BOARDS */
+          <div className="grid grid-cols-1 items-stretch gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-6">
               {/* 1. SALTIMBOCCA */}
+              <div className="flex min-w-0 flex-col lg:col-span-2">
               <CategoryShowcaseModule
                 category={saltimboccaCategory}
                 title={saltimboccaCategory.name}
@@ -222,8 +221,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                 onQuickAdd={onQuickAdd}
                 onExploreCategory={() => setSelectedCategoryId(saltimboccaCategory.id)}
               />
+              </div>
 
               {/* 2. BUN */}
+              <div className="flex min-w-0 flex-col lg:col-span-2">
               <CategoryShowcaseModule
                 category={bunCategory}
                 title={bunCategory.name}
@@ -239,8 +240,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                 onQuickAdd={onQuickAdd}
                 onExploreCategory={() => setSelectedCategoryId(bunCategory.id)}
               />
+              </div>
 
               {/* 3. RUTIELLO 2.0 */}
+              <div className="flex min-w-0 flex-col lg:col-span-2">
               <CategoryShowcaseModule
                 category={rutielloCategory}
                 title={rutielloCategory.name}
@@ -257,12 +260,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                 onQuickAdd={onQuickAdd}
                 onExploreCategory={() => setSelectedCategoryId(rutielloCategory.id)}
               />
-            </div>
+              </div>
 
-            {/* ROW 2: 2 ASYMMETRIC COLUMNS (PADELLINO ~45%, FRIGGITORIA ~55%) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
-              {/* 4. PADELLINO (lg:col-span-5) */}
-              <div className="lg:col-span-5 flex flex-col">
+              {/* 4. PADELLINO: same board width as the first row, centered */}
+              <div className="flex min-w-0 flex-col lg:col-span-2 lg:col-start-2">
                 <CategoryShowcaseModule
                   category={padellinoCategory}
                   title={padellinoCategory.name}
@@ -281,8 +282,8 @@ export const HomePage: React.FC<HomePageProps> = ({
                 />
               </div>
 
-              {/* 5. FRIGGITORIA (lg:col-span-7) */}
-              <div className="lg:col-span-7 flex flex-col">
+              {/* 5. FRIGGITORIA: same board width as the first row, centered */}
+              <div className="flex min-w-0 flex-col lg:col-span-2 lg:col-start-4">
                 <CategoryShowcaseModule
                   category={friggitoriaCategory}
                   title={friggitoriaCategory.name}
@@ -299,7 +300,6 @@ export const HomePage: React.FC<HomePageProps> = ({
                   onExploreCategory={() => setSelectedCategoryId(friggitoriaCategory.id)}
                 />
               </div>
-            </div>
           </div>
         )}
       </main>

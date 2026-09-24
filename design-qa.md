@@ -3,7 +3,7 @@
 ## Comparison target
 
 - source visual truth path: `C:\Users\ANTONI~1.NAV\AppData\Local\Temp\codex-clipboard-1fbadb05-7a55-46d2-9a7a-0c469999e7ad.png`
-- implementation screenshot path: `http://127.0.0.1:3008/` (Chrome capture via CUA; the browser-control surface exposes the capture directly but not a filesystem raster path)
+- implementation screenshot path: `http://127.0.0.1:3013/` (Chrome capture via CUA; the browser-control surface exposes the capture directly but not a filesystem raster path)
 - route: `/`
 - state: desktop storefront, catalog loaded, no products in cart, default “Tutte le categorie” filter selected
 - source pixels: `1672 × 941`
@@ -12,19 +12,19 @@
 
 ## Full-view comparison evidence
 
-The source mockup and the live Chrome implementation were opened and inspected during the same QA pass. The implementation preserves the reference hierarchy: dark green masthead, compact hero, warm cream page surface, left-aligned category pills, three equal upper showcase modules, and the asymmetric two-module lower row. The live page also keeps the footer and catalog content in the same visual system.
+The source mockup and the live Chrome implementation were opened and inspected during the same QA pass. The implementation preserves the reference hierarchy: dark green masthead, compact hero, warm cream page surface, left-aligned category pills, three equal upper showcase modules, and a centered lower row made of two boards with the same width and height. The live page also keeps the footer and catalog content in the same visual system.
 
 ## Focused region comparison evidence
 
 - Header: script-style white brand mark, dark green navigation, search field, account and cart actions are visually present and aligned with the reference.
 - Hero: `src/pages/HomePage.tsx` uses the supplied `hero_mpastamm_garden.png`, with a cream-to-transparent overlay so the “La Vetrina” copy remains readable.
-- Showcase modules: `src/components/CategoryShowcaseModule.tsx` and `src/components/GlassDisplayCase.tsx` reproduce the editorial image header, green icon badge, rounded paper card, three display cases, and external name/price labels. The five new user-supplied section images are mapped in `src/services/imageMap.ts` to the matching categories.
+- Showcase modules: `src/components/CategoryShowcaseModule.tsx` and `src/components/GlassDisplayCase.tsx` reproduce the editorial image header, green icon badge, rounded paper card, three uniform museum-style glass display cases, and external name/price labels. The five new user-supplied section images are mapped in `src/services/imageMap.ts` to the matching categories.
 - Footer: `src/components/Footer.tsx` now reads address and city from the configured settings rather than placeholder text.
 
 ## Required fidelity surfaces
 
 - Fonts and typography: `Playfair Display` is used for display headings, `DM Sans` for UI/body text, and `Caveat` for script branding; hierarchy and wrapping remain legible in the captured desktop view.
-- Spacing and layout rhythm: the 278px desktop hero now gives the supplied wall sign enough vertical room to remain readable, while the 64px masthead, pill spacing, 3-column upper grid, and 2-column lower grid remain consistent with the source composition. Cards retain rounded corners, warm borders, and restrained elevation.
+- Spacing and layout rhythm: the 278px desktop hero now gives the supplied wall sign enough vertical room to remain readable, while the 64px masthead, pill spacing, 3-column upper grid, and centered 3+2 uniform board grid remain consistent with the source composition. Product teche use the same 5:4 proportion, internal label area, and spacing across categories. Cards retain rounded corners, warm borders, and restrained elevation.
 - Colors and visual tokens: the implementation maps the source to dark olive green, cream paper, warm brown imagery, muted gold accents, and translucent dark image overlays. Contrast remains readable over the supplied hero and food imagery.
 - Image quality and asset fidelity: the user-supplied hero image is bundled as a real raster asset at `src/assets/images/hero_mpastamm_garden.png`; the supplied section card assets are bundled as `card_saltimbocca_mpastamm.png`, `card_bun_mpastamm.png`, `card_rutiello_mpastamm.png`, `card_padellino_mpastamm.png`, and `card_friggitoria_mpastamm.png`. They are real raster images, not CSS drawings or placeholder SVG art.
 - Copy and content: storefront labels, category descriptions, prices, footer details, and calls to action are coherent Italian product copy. Live catalog values replace the mockup’s intentional “Nome prodotto / € 0,00” placeholders.
@@ -46,12 +46,14 @@ The source mockup and the live Chrome implementation were opened and inspected d
 3. Post-fix evidence: fresh Chrome capture at `http://127.0.0.1:3006/` shows the sign, plants, left cream copy area, and main storefront composition without layout collisions; lower showcase modules were also inspected after scrolling.
 4. Asset refinement pass: replaced the five category hero images with the user-supplied card assets and captured a fresh render at `http://127.0.0.1:3007/`; each supplied food subject now appears in the matching section without changing the layout.
 5. Hero refinement pass: removed the duplicate dark “Mpastamm / Sapori autentici…” overlay from `src/pages/HomePage.tsx`, increased the desktop hero to 278px, and moved the image crop to `center 18%`. Fresh Chrome capture at `http://127.0.0.1:3008/` shows all three neon-sign lines clearly.
-6. No actionable P0/P1/P2 findings remain.
+6. Display-case and board refinement pass: changed the category layout to a shared six-column grid so all five category boards use the same width, height, and product-card rhythm; centered Padellino and Friggitoria on the second row.
+7. Teca refinement pass: changed product cases to a 5:4 proportion, strengthened the warm internal spotlights and glass-pane treatment, kept the product inset inside the chamber, and rechecked both rows in Chrome at `http://127.0.0.1:3013/`.
+8. No actionable P0/P1/P2 findings remain.
 
 ## Implementation Checklist
 
 - [x] Supplied hero image bundled and mapped to `ASSET_IMAGES.hero`.
-- [x] Header, hero, category filters, showcase cards, display cases, and footer aligned to the reference direction.
+- [x] Header, hero, category filters, uniform showcase boards, illuminated glass display cases, and footer aligned to the reference direction.
 - [x] Desktop live render verified in actual Chrome.
 - [x] Hero crop rechecked after the visual fix.
 - [x] TypeScript lint passed with `npm run lint`.
@@ -61,6 +63,6 @@ The source mockup and the live Chrome implementation were opened and inspected d
 ## Follow-up Polish
 
 - [P3] A dedicated panoramic hero crop could more closely echo the multi-panel reference collage.
-- [P3] Product-specific display-case photos can be curated further once the final catalog photography is available.
+- [P3] Product-specific display-case photos can be curated further once the final catalog photography is available; the current framing is intentionally consistent across all categories.
 
 final result: passed

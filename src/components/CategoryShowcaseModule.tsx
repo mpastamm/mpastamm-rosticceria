@@ -31,7 +31,7 @@ export const CategoryShowcaseModule: React.FC<CategoryShowcaseModuleProps> = ({
   const placeholderCount = Math.max(0, 3 - displayItems.length);
 
   return (
-    <article className="relative overflow-hidden rounded-[18px] border border-[#D0C4B2] bg-[#F7F1E8] shadow-[0_8px_24px_rgba(73,54,35,0.14)] text-white">
+    <article className="relative flex h-full flex-col overflow-hidden rounded-[18px] border border-[#D0C4B2] bg-[#F7F1E8] shadow-[0_8px_24px_rgba(73,54,35,0.14)] text-white">
       {/* Compact editorial category header: copy left, food photography right. */}
       <div className="relative h-[154px] sm:h-[166px] overflow-hidden bg-[#3B2516]">
         <img
@@ -66,7 +66,7 @@ export const CategoryShowcaseModule: React.FC<CategoryShowcaseModuleProps> = ({
       </div>
 
       {/* Three glass display cases on the warm paper surface. */}
-      <div className="grid grid-cols-3 gap-1.5 bg-[#F7F1E8] p-2.5 sm:gap-2 sm:p-3">
+      <div className="grid flex-1 grid-cols-3 items-stretch gap-1.5 bg-[#F7F1E8] p-2.5 sm:gap-2 sm:p-3">
         {displayItems.map((prod) => (
           <GlassDisplayCase
             key={prod.id}

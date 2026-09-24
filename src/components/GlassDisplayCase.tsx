@@ -27,10 +27,10 @@ export const GlassDisplayCase: React.FC<GlassDisplayCaseProps> = ({
   return (
     <div
       onClick={onClick}
-      className="group relative flex flex-col items-center cursor-pointer transition-transform duration-300 hover:-translate-y-1 select-none w-full"
+      className="group relative flex h-full flex-col items-center cursor-pointer transition-transform duration-300 hover:-translate-y-1 select-none w-full"
     >
       {/* THE COUNTERTOP GLASS DISPLAY CASE ("TECA DA BANCO") */}
-      <div className="relative w-full aspect-[1/1] rounded-xl overflow-hidden shadow-[0_3px_9px_rgba(44,33,22,0.2)] border border-[#D7C8B4] bg-[#F8F3EB]">
+      <div className="relative w-full aspect-[5/4] overflow-hidden rounded-xl border border-[#A8B9AE]/80 bg-[#F8F3EB] shadow-[0_4px_12px_rgba(44,33,22,0.2)]">
         {/* Teca 3D Showcase Frame Image */}
         <img
           src={ASSET_IMAGES.glassDisplayCase}
@@ -39,22 +39,22 @@ export const GlassDisplayCase: React.FC<GlassDisplayCaseProps> = ({
         />
 
         {/* TOP SPOTLIGHT GLOW CONES OVER THE PRODUCT */}
-        <div className="absolute top-[6%] left-[22%] w-12 h-16 bg-amber-200/25 rounded-full blur-md pointer-events-none" />
-        <div className="absolute top-[6%] right-[22%] w-12 h-16 bg-amber-200/25 rounded-full blur-md pointer-events-none" />
+        <div className="absolute top-[8%] left-[21%] h-12 w-12 rounded-full bg-amber-100/40 blur-lg pointer-events-none" />
+        <div className="absolute top-[8%] right-[21%] h-12 w-12 rounded-full bg-amber-100/40 blur-lg pointer-events-none" />
 
         {/* INTERIOR DISPLAY CHAMBER - WHERE FOOD PRODUCT SITS */}
-        <div className="absolute top-[17%] bottom-[29%] left-[13%] right-[13%] flex items-center justify-center overflow-hidden rounded-md">
+        <div className="absolute top-[16%] bottom-[27%] left-[14%] right-[14%] flex items-center justify-center overflow-hidden rounded-md border border-white/35 bg-[#F1E7D3]/35 shadow-[inset_0_0_18px_rgba(255,247,214,0.34)]">
           {image ? (
-            <div className="relative w-full h-full flex items-center justify-center p-0.5">
+            <div className="relative flex h-full w-full items-center justify-center p-1.5">
               <img
                 src={image}
                 alt={name}
-                className={`w-full h-full object-cover rounded shadow-md transition-transform duration-500 group-hover:scale-105 ${
+                className={`h-full w-full rounded object-cover shadow-[0_4px_10px_rgba(64,39,21,0.28)] transition-transform duration-500 group-hover:scale-[1.03] ${
                   isSoldOut ? 'grayscale contrast-75 opacity-40' : ''
                 }`}
               />
               {/* Subtle glass bottom floor reflection shadow */}
-              <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-black/40 to-transparent pointer-events-none rounded-b" />
+              <div className="absolute inset-x-1.5 bottom-1.5 h-6 rounded-b bg-gradient-to-t from-black/35 to-transparent pointer-events-none" />
             </div>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center bg-black/15 backdrop-blur-[0.5px] rounded border border-dashed border-amber-900/30 text-[#8C7A68] p-2 text-center group-hover:border-amber-700/50 transition-colors">
@@ -90,12 +90,12 @@ export const GlassDisplayCase: React.FC<GlassDisplayCaseProps> = ({
         </div>
 
         {/* REALISTIC GLASS FRONT SHIMMER */}
-        <div className="absolute inset-x-[11%] top-[14%] bottom-[27%] bg-gradient-to-tr from-transparent via-white/[0.05] to-white/[0.15] pointer-events-none rounded" />
+        <div className="absolute inset-x-[11%] top-[13%] bottom-[25%] rounded bg-gradient-to-tr from-white/[0.02] via-white/[0.1] to-white/[0.24] pointer-events-none" />
 
       </div>
 
       {/* Editorial product label below the glass case, as in the reference. */}
-      <div className="w-full px-1 pt-1.5 text-center">
+      <div className="flex min-h-[34px] w-full flex-col justify-start px-1 pt-1.5 text-center">
         <h4 className="font-serif font-semibold text-[10px] sm:text-[11px] lg:text-[12px] text-[#29231C] leading-tight truncate w-full tracking-tight">
           {name}
         </h4>
