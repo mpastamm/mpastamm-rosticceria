@@ -6,6 +6,8 @@ import {
   MapPin,
   Phone,
   Instagram,
+  Facebook,
+  Music2,
   Save,
   CheckCircle2,
   Database,
@@ -224,16 +226,53 @@ export const AdminSettingsPage: React.FC<AdminSettingsPageProps> = ({
           </div>
 
           <div className="sm:col-span-2 space-y-1">
-            <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider">
-              Instagram
+            <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider flex items-center gap-1.5">
+              <Instagram className="w-3.5 h-3.5" /> Instagram
             </label>
             <input
               type="text"
-              value={formData.instagram_handle}
-              onChange={(e) => setFormData({ ...formData, instagram_handle: e.target.value })}
+              value={formData.instagram_url || formData.instagram_handle || ''}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  instagram_url: e.target.value,
+                  instagram_handle: e.target.value,
+                })
+              }
+              placeholder="https://instagram.com/tuoprofilo oppure @tuoprofilo"
               className="w-full px-3.5 py-2.5 rounded-xl border border-[#D8C3A5] text-sm bg-[#FAF7F2]"
             />
           </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider flex items-center gap-1.5">
+              <Facebook className="w-3.5 h-3.5" /> Facebook
+            </label>
+            <input
+              type="text"
+              value={formData.facebook_url || ''}
+              onChange={(e) => setFormData({ ...formData, facebook_url: e.target.value })}
+              placeholder="https://facebook.com/tuapagina"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#D8C3A5] text-sm bg-[#FAF7F2]"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider flex items-center gap-1.5">
+              <Music2 className="w-3.5 h-3.5" /> TikTok
+            </label>
+            <input
+              type="text"
+              value={formData.tiktok_url || ''}
+              onChange={(e) => setFormData({ ...formData, tiktok_url: e.target.value })}
+              placeholder="https://tiktok.com/@tuoprofilo"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#D8C3A5] text-sm bg-[#FAF7F2]"
+            />
+          </div>
+
+          <p className="sm:col-span-2 text-[11px] text-[#7A8A7E]">
+            Puoi inserire l&apos;URL completo oppure il nome del profilo. Lascia vuoto un social che non vuoi mostrare.
+          </p>
         </div>
       </div>
 
