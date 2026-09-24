@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapPin, Clock, Sparkles, Instagram, Facebook, ShieldCheck } from 'lucide-react';
 import { BusinessSettings } from '../types';
+import mpastammLogo from '../assets/images/mpastamm_logo_white.ts';
 
 interface FooterProps {
   settings: BusinessSettings;
@@ -14,12 +15,11 @@ export const Footer: React.FC<FooterProps> = ({ settings, onNavigate }) => {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           {/* Left: Brand Logo */}
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left shrink-0">
-            <span className="font-script text-3xl sm:text-4xl text-[#FAF7F2] leading-none">
-              Mpastamm
-            </span>
-            <span className="text-[8.5px] tracking-[0.28em] text-[#C2B79E] uppercase font-bold pl-0.5 mt-0.5">
-              ROSTICCERIA
-            </span>
+            <img
+              src={mpastammLogo}
+              alt="Mpastamm - officina dei lievitati"
+              className="block w-36 sm:w-44 h-auto object-contain"
+            />
           </div>
 
           {/* Center Info Items (Exact match to screenshot) */}
