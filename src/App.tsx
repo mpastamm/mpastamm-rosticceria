@@ -46,6 +46,7 @@ import { AdminProductEditPage } from './pages/admin/AdminProductEditPage';
 import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
 import { AdminHoursPage } from './pages/admin/AdminHoursPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
+import { AdminSiteContentPage } from './pages/admin/AdminSiteContentPage';
 
 export default function App() {
   // Navigation Path
@@ -375,6 +376,15 @@ export default function App() {
               settings={settings}
               onSaveSettings={handleSaveSettings}
               onResetFactoryData={handleResetFactoryData}
+            />
+          )}
+
+          {currentPath === '/admin/contenuti' && (
+            <AdminSiteContentPage
+              settings={settings}
+              categories={categories}
+              onSaveSettings={handleSaveSettings}
+              onSaveCategory={handleSaveCategory}
             />
           )}
         </main>

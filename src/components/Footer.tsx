@@ -53,7 +53,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, onNavigate }) => {
 
             {/* Signature Quote in Cursive Handwriting */}
             <div className="font-script text-xl sm:text-2xl text-[#F0EBE1] italic tracking-wide px-2">
-              "Nun c'è fame, è voglia e sfizio."
+              {settings.footer_claim || "Nun c'è fame, è voglia e sfizio."}
             </div>
           </div>
 

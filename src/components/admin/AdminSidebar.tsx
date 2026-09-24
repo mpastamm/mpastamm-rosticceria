@@ -10,6 +10,7 @@ import {
   LogOut,
   ExternalLink,
   Store,
+  Palette,
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -28,6 +29,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const menuItems = [
     { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { label: 'Vetrina Rapida', path: '/admin/vetrina', icon: Zap, badge: 'Flash' },
+    { label: 'Contenuti del Sito', path: '/admin/contenuti', icon: Palette },
     {
       label: 'Ordini Ricevuti',
       path: '/admin/ordini',

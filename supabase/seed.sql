@@ -2,15 +2,16 @@
 -- Eseguire dopo schema.sql. Le foto locali restano disponibili come fallback;
 -- le nuove foto caricate dall'admin vengono salvate nel bucket product-images.
 
-INSERT INTO categories (id, name, slug, display_order, visible)
+INSERT INTO categories (id, name, slug, description, image_url, display_order, visible)
 VALUES
-  ('cat_saltimbocca', 'Saltimbocca', 'saltimbocca', 1, true),
-  ('cat_bun', 'Bun (100g)', 'bun', 2, true),
-  ('cat_rutiello', 'Rutiello 2.0', 'rutiello-2-0', 3, true),
-  ('cat_padellino', 'Padellino', 'padellino', 4, true),
-  ('cat_friggitoria', 'Friggitoria', 'friggitoria', 5, true)
+  ('cat_saltimbocca', 'Saltimbocca', 'saltimbocca', 'L''arte del gusto in un morso.', '', 1, true),
+  ('cat_bun', 'Bun (100g)', 'bun', 'Soffice, fragrante, ineguagliabile.', '', 2, true),
+  ('cat_rutiello', 'Rutiello 2.0', 'rutiello-2-0', 'La tradizione si rinnova.', '', 3, true),
+  ('cat_padellino', 'Padellino', 'padellino', 'Tutta la bontà della rosticceria.', '', 4, true),
+  ('cat_friggitoria', 'Friggitoria', 'friggitoria', 'Croccante fuori, irresistibile dentro.', '', 5, true)
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, slug = EXCLUDED.slug,
-  display_order = EXCLUDED.display_order, visible = EXCLUDED.visible, updated_at = now();
+  description = EXCLUDED.description, display_order = EXCLUDED.display_order,
+  visible = EXCLUDED.visible, updated_at = now();
 
 INSERT INTO products
   (id, category_id, name, slug, description, ingredients, price, image_url,
@@ -69,14 +70,20 @@ ON CONFLICT (id) DO UPDATE SET
   display_order = EXCLUDED.display_order, updated_at = now();
 
 INSERT INTO business_settings
-  (id, store_name, tagline, address, city, phone, whatsapp_notification_phone,
+  (id, store_name, tagline, hero_title, hero_description, hero_image_url, hero_image_alt, footer_claim,
+   address, city, phone, whatsapp_notification_phone,
    instagram_handle, orders_enabled, orders_disabled_message, next_day_orders_allowed, slot_interval_minutes)
 VALUES
-  ('settings_main', '''Mpastamm', 'Rosticceria & Forno Contemporaneo', 'Via Roma, 42',
+  ('settings_main', '''Mpastamm', 'Rosticceria & Forno Contemporaneo', 'La Vetrina',
+   'I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.', '',
+   'Mpastamm Rosticceria Interno e Vetrina', 'Nun c''è fame, è voglia e sfizio.', 'Via Roma, 42',
    'Napoli (NA)', '081 123 4567', '', '@mpastamm.rosticceria', true,
    'Le prenotazioni per oggi sono terminate. Puoi già prenotare per domani.', true, 15)
 ON CONFLICT (id) DO UPDATE SET
-  store_name = EXCLUDED.store_name, tagline = EXCLUDED.tagline, address = EXCLUDED.address,
+  store_name = EXCLUDED.store_name, tagline = EXCLUDED.tagline, hero_title = EXCLUDED.hero_title,
+  hero_description = EXCLUDED.hero_description, hero_image_url = EXCLUDED.hero_image_url,
+  hero_image_alt = EXCLUDED.hero_image_alt, footer_claim = EXCLUDED.footer_claim,
+  address = EXCLUDED.address,
   city = EXCLUDED.city, phone = EXCLUDED.phone, instagram_handle = EXCLUDED.instagram_handle,
   orders_enabled = EXCLUDED.orders_enabled, orders_disabled_message = EXCLUDED.orders_disabled_message,
   next_day_orders_allowed = EXCLUDED.next_day_orders_allowed, slot_interval_minutes = EXCLUDED.slot_interval_minutes,

@@ -7,7 +7,7 @@ Web app responsive per la vetrina digitale, le prenotazioni d'asporto e la gesti
 - vetrina pubblica con categorie, ricerca e disponibilità;
 - scheda prodotto, carrello e prenotazione con pagamento al ritiro;
 - conferma ordine e notifica WhatsApp opzionale;
-- area admin per prodotti, categorie, ordini, scorte, orari e impostazioni;
+- area admin per prodotti, categorie, ordini, scorte, orari, impostazioni e contenuti del sito;
 - fallback locale per sviluppo e predisposizione Supabase per database, auth, storage e realtime.
 
 ## Avvio locale
@@ -35,8 +35,9 @@ La modalità demo non va usata in produzione.
 
 1. Creare un progetto Supabase.
 2. Eseguire `supabase/schema.sql` nell'SQL Editor.
-3. Creare il primo utente admin in Supabase Auth.
-4. Inserire una riga corrispondente nella tabella `admins`.
+3. Eseguire anche la migrazione contenuti presente in `supabase/schema.sql` (campi hero, card e footer).
+4. Creare il primo utente admin in Supabase Auth.
+5. Inserire una riga corrispondente nella tabella `admins`.
 5. Configurare `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
 
 Le chiavi private e i token WhatsApp devono rimanere esclusivamente nelle variabili d'ambiente server e non devono essere committati.

@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS categories (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   slug TEXT NOT NULL UNIQUE,
+  description TEXT,
+  image_url TEXT,
   display_order INT DEFAULT 0,
   visible BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT now(),
@@ -72,6 +74,11 @@ CREATE TABLE IF NOT EXISTS business_settings (
   id TEXT PRIMARY KEY DEFAULT 'settings_main',
   store_name TEXT NOT NULL DEFAULT '''Mpastamm',
   tagline TEXT DEFAULT 'Rosticceria & Forno Contemporaneo',
+  hero_title TEXT DEFAULT 'La Vetrina',
+  hero_description TEXT DEFAULT 'I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.',
+  hero_image_url TEXT,
+  hero_image_alt TEXT DEFAULT 'Mpastamm Rosticceria Interno e Vetrina',
+  footer_claim TEXT DEFAULT 'Nun c''è fame, è voglia e sfizio.',
   address TEXT DEFAULT 'Via Roma, 42',
   city TEXT DEFAULT 'Napoli (NA)',
   phone TEXT DEFAULT '081 123 4567',
@@ -83,6 +90,15 @@ CREATE TABLE IF NOT EXISTS business_settings (
   slot_interval_minutes INT DEFAULT 15,
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migrazione sicura per i progetti creati con una versione precedente dello schema.
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS image_url TEXT;
+ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_title TEXT DEFAULT 'La Vetrina';
+ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_description TEXT DEFAULT 'I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.';
+ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_image_url TEXT;
+ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_image_alt TEXT DEFAULT 'Mpastamm Rosticceria Interno e Vetrina';
+ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS footer_claim TEXT DEFAULT 'Nun c''è fame, è voglia e sfizio.';
 
 -- 6. TABELLA ORARI DI APERTURA
 CREATE TABLE IF NOT EXISTS opening_hours (

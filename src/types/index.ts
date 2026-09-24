@@ -6,6 +6,8 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
+  description?: string;
+  image_url?: string;
   display_order: number;
   visible: boolean;
   created_at?: string;
@@ -73,6 +75,11 @@ export interface BusinessSettings {
   id: string;
   store_name: string;
   tagline: string;
+  hero_title?: string;
+  hero_description?: string;
+  hero_image_url?: string;
+  hero_image_alt?: string;
+  footer_claim?: string;
   address: string;
   city: string;
   phone: string;

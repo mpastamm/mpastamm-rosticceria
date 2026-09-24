@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   ExternalLink,
+  Palette,
 } from 'lucide-react';
 
 interface AdminMobileNavProps {
@@ -52,6 +53,14 @@ export const AdminMobileNav: React.FC<AdminMobileNavProps> = ({
             </h4>
 
             <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleNavigate('/admin/contenuti')}
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-[#203D2E] text-sm text-left font-medium"
+              >
+                <Palette className="w-4 h-4 text-emerald-400" />
+                <span>Contenuti Sito</span>
+              </button>
+
               <button
                 onClick={() => handleNavigate('/admin/categorie')}
                 className="flex items-center gap-2.5 p-3 rounded-xl bg-[#203D2E] text-sm text-left font-medium"

@@ -8,9 +8,11 @@ interface ImageUploaderProps {
   value: string;
   onChange: (url: string) => void;
   aspectRatio?: '4/3' | '16/9' | '1/1';
+  mode?: 'product' | 'site';
 }
 
 const PRESET_PHOTOS = [
+  { name: 'Hero Locale', url: ASSET_IMAGES.hero },
   { name: 'Saltimbocca', url: ASSET_IMAGES.saltimbocca },
   { name: 'Bun Gourmet', url: ASSET_IMAGES.bun },
   { name: 'Rutiello 2.0', url: ASSET_IMAGES.rutiello },
@@ -22,6 +24,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   value,
   onChange,
   aspectRatio = '4/3',
+  mode = 'product',
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCompressing, setIsCompressing] = useState(false);
@@ -97,6 +100,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       : aspectRatio === '1/1'
       ? 'aspect-square'
       : 'aspect-[4/3]';
+  const isSiteImage = mode === 'site';
 
   return (
     <div className="space-y-3">
@@ -150,13 +154,15 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Sostituisci
               </button>
-              <button
-                type="button"
-                onClick={() => setShowTecaPreview(!showTecaPreview)}
-                className="px-3 py-1.5 bg-[#16251A] hover:bg-[#253E2B] text-white text-xs font-bold rounded-lg shadow-md flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Eye className="w-3.5 h-3.5" /> {showTecaPreview ? 'Foto Standard' : 'Anteprima Teca'}
-              </button>
+              {!isSiteImage && (
+                <button
+                  type="button"
+                  onClick={() => setShowTecaPreview(!showTecaPreview)}
+                  className="px-3 py-1.5 bg-[#16251A] hover:bg-[#253E2B] text-white text-xs font-bold rounded-lg shadow-md flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" /> {showTecaPreview ? 'Foto Standard' : 'Anteprima Teca'}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleRemove}
@@ -167,9 +173,11 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             </div>
           </div>
 
-          <p className="text-[11px] text-[#7A8A7E]">
-            💡 Clicca su <strong>Anteprima Teca</strong> per vedere come apparirà la foto esposta sotto i faretti della vetrina.
-          </p>
+          {!isSiteImage && (
+            <p className="text-[11px] text-[#7A8A7E]">
+              💡 Clicca su <strong>Anteprima Teca</strong> per vedere come apparirà la foto esposta sotto i faretti della vetrina.
+            </p>
+          )}
         </div>
       ) : (
         <div
@@ -187,7 +195,9 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                 <Upload className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm font-bold text-[#1C211E]">Carica fotografia per la teca</p>
+              <p className="text-sm font-bold text-[#1C211E]">
+                {isSiteImage ? 'Carica immagine del sito' : 'Carica fotografia per la teca'}
+              </p>
                 <p className="text-xs text-[#7A8A7E] mt-0.5">
                   Trascina qui o tocca per selezionare dal dispositivo
                 </p>
@@ -201,7 +211,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       {/* Preset Quick-picks */}
       <div className="space-y-1.5 pt-1">
         <span className="text-[11px] font-bold text-[#706456] flex items-center gap-1 uppercase tracking-wider">
-          <Sparkles className="w-3 h-3 text-amber-700" /> Oppure scegli una foto della rosticceria:
+          <Sparkles className="w-3 h-3 text-amber-700" />
+          {isSiteImage ? 'Oppure scegli una foto già disponibile:' : 'Oppure scegli una foto della rosticceria:'}
         </span>
         <div className="flex flex-wrap gap-1.5">
           {PRESET_PHOTOS.map((preset) => (

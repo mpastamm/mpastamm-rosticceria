@@ -91,6 +91,11 @@ export const HomePage: React.FC<HomePageProps> = ({
   const rutielloProducts = products.filter((p) => p.category_id === rutielloCategory.id && p.visible);
   const padellinoProducts = products.filter((p) => p.category_id === padellinoCategory.id && p.visible);
   const friggitoriaProducts = products.filter((p) => p.category_id === friggitoriaCategory.id && p.visible);
+  const heroImage = settings.hero_image_url || ASSET_IMAGES.hero;
+  const heroTitle = settings.hero_title || 'La Vetrina';
+  const heroDescription =
+    settings.hero_description ||
+    'I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.';
 
   return (
     <div className="bg-[#ECE6DB] min-h-screen text-[#1C211E] pb-16 selection:bg-[#16251A] selection:text-white">
@@ -101,8 +106,8 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Panoramic Venue Image */}
           <div className="absolute inset-0 z-0">
             <img
-              src={ASSET_IMAGES.hero}
-              alt="Mpastamm Rosticceria Interno e Vetrina"
+              src={heroImage}
+              alt={settings.hero_image_alt || 'Mpastamm Rosticceria Interno e Vetrina'}
               className="w-full h-full object-cover object-[center_18%] brightness-[0.98] contrast-[1.02]"
             />
             {/* Subtle soft gradient overlay to ensure text contrast while retaining full venue look */}
@@ -115,11 +120,11 @@ export const HomePage: React.FC<HomePageProps> = ({
             {/* Left Typography Block */}
             <div className="max-w-lg space-y-2 sm:space-y-3">
               <h1 className="font-serif text-5xl sm:text-6xl lg:text-[4.05rem] font-bold tracking-[-0.045em] text-[#16251A] leading-[0.98]">
-                La Vetrina
+                {heroTitle}
               </h1>
 
               <p className="text-base sm:text-lg lg:text-[1.05rem] text-[#2C2720] font-normal leading-snug max-w-[520px]">
-                I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.
+                {heroDescription}
               </p>
 
               {/* Warm Golden/Caramel Brush Underline Accent matching screenshot */}
@@ -204,9 +209,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* 1. SALTIMBOCCA */}
               <CategoryShowcaseModule
                 category={saltimboccaCategory}
-                title="Saltimbocca"
-                subtitle="L'arte del gusto in un morso."
-                heroImage={ASSET_IMAGES.saltimbocca}
+                title={saltimboccaCategory.name}
+                subtitle={saltimboccaCategory.description || "L'arte del gusto in un morso."}
+                heroImage={saltimboccaCategory.image_url || ASSET_IMAGES.saltimbocca}
                 icon={
                   <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 8a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v2H3V8Zm0 8a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-2H3v2Zm0-4h18" />
@@ -221,9 +226,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* 2. BUN */}
               <CategoryShowcaseModule
                 category={bunCategory}
-                title="Bun"
-                subtitle="Soffice, fragrante, ineguagliabile."
-                heroImage={ASSET_IMAGES.bun}
+                title={bunCategory.name}
+                subtitle={bunCategory.description || 'Soffice, fragrante, ineguagliabile.'}
+                heroImage={bunCategory.image_url || ASSET_IMAGES.bun}
                 icon={
                   <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 11a8 8 0 0 1 16 0H4Zm0 4h16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Zm0-1h16" />
@@ -238,9 +243,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               {/* 3. RUTIELLO 2.0 */}
               <CategoryShowcaseModule
                 category={rutielloCategory}
-                title="Rutiello 2.0"
-                subtitle="La tradizione si rinnova."
-                heroImage={ASSET_IMAGES.rutiello}
+                title={rutielloCategory.name}
+                subtitle={rutielloCategory.description || 'La tradizione si rinnova.'}
+                heroImage={rutielloCategory.image_url || ASSET_IMAGES.rutiello}
                 icon={
                   <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <circle cx="12" cy="12" r="9" />
@@ -260,9 +265,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               <div className="lg:col-span-5 flex flex-col">
                 <CategoryShowcaseModule
                   category={padellinoCategory}
-                  title="Padellino"
-                  subtitle="Tutta la bontà della rosticceria."
-                  heroImage={ASSET_IMAGES.padellino}
+                  title={padellinoCategory.name}
+                  subtitle={padellinoCategory.description || 'Tutta la bontà della rosticceria.'}
+                  heroImage={padellinoCategory.image_url || ASSET_IMAGES.padellino}
                   icon={
                     <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <ellipse cx="12" cy="13" rx="8" ry="5" />
@@ -280,9 +285,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               <div className="lg:col-span-7 flex flex-col">
                 <CategoryShowcaseModule
                   category={friggitoriaCategory}
-                  title="Friggitoria"
-                  subtitle="Croccante fuori, irresistibile dentro."
-                  heroImage={ASSET_IMAGES.friggitoria}
+                  title={friggitoriaCategory.name}
+                  subtitle={friggitoriaCategory.description || 'Croccante fuori, irresistibile dentro.'}
+                  heroImage={friggitoriaCategory.image_url || ASSET_IMAGES.friggitoria}
                   icon={
                     <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 10V5m4 5V3m4 7V4m4 6V5M4 10h16l-2 10H6L4 10Z" />

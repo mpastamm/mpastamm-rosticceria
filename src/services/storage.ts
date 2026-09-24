@@ -19,11 +19,51 @@ const broadcastChannel = typeof window !== 'undefined' && 'BroadcastChannel' in 
 
 // Initial Categories
 export const INITIAL_CATEGORIES: Category[] = [
-  { id: 'cat_saltimbocca', name: 'Saltimbocca', slug: 'saltimbocca', display_order: 1, visible: true },
-  { id: 'cat_bun', name: 'Bun (100g)', slug: 'bun', display_order: 2, visible: true },
-  { id: 'cat_rutiello', name: 'Rutiello 2.0', slug: 'rutiello-2-0', display_order: 3, visible: true },
-  { id: 'cat_padellino', name: 'Padellino', slug: 'padellino', display_order: 4, visible: true },
-  { id: 'cat_friggitoria', name: 'Friggitoria', slug: 'friggitoria', display_order: 5, visible: true },
+  {
+    id: 'cat_saltimbocca',
+    name: 'Saltimbocca',
+    slug: 'saltimbocca',
+    description: "L'arte del gusto in un morso.",
+    image_url: ASSET_IMAGES.saltimbocca,
+    display_order: 1,
+    visible: true,
+  },
+  {
+    id: 'cat_bun',
+    name: 'Bun (100g)',
+    slug: 'bun',
+    description: 'Soffice, fragrante, ineguagliabile.',
+    image_url: ASSET_IMAGES.bun,
+    display_order: 2,
+    visible: true,
+  },
+  {
+    id: 'cat_rutiello',
+    name: 'Rutiello 2.0',
+    slug: 'rutiello-2-0',
+    description: 'La tradizione si rinnova.',
+    image_url: ASSET_IMAGES.rutiello,
+    display_order: 3,
+    visible: true,
+  },
+  {
+    id: 'cat_padellino',
+    name: 'Padellino',
+    slug: 'padellino',
+    description: 'Tutta la bontà della rosticceria.',
+    image_url: ASSET_IMAGES.padellino,
+    display_order: 4,
+    visible: true,
+  },
+  {
+    id: 'cat_friggitoria',
+    name: 'Friggitoria',
+    slug: 'friggitoria',
+    description: 'Croccante fuori, irresistibile dentro.',
+    image_url: ASSET_IMAGES.friggitoria,
+    display_order: 5,
+    visible: true,
+  },
 ];
 
 // Initial Products as requested by user prompt
@@ -383,6 +423,11 @@ export const INITIAL_SETTINGS: BusinessSettings = {
   id: 'settings_main',
   store_name: "'Mpastamm",
   tagline: 'Rosticceria & Forno Contemporaneo',
+  hero_title: 'La Vetrina',
+  hero_description: 'I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.',
+  hero_image_url: ASSET_IMAGES.hero,
+  hero_image_alt: 'Mpastamm Rosticceria Interno e Vetrina',
+  footer_claim: "Nun c'è fame, è voglia e sfizio.",
   address: 'Via Roma, 42',
   city: 'Napoli (NA)',
   phone: '081 123 4567',
