@@ -15,17 +15,23 @@ export const Footer: React.FC<FooterProps> = ({ settings, openingHours, onNaviga
   const facebookUrl = getSocialUrl('facebook', settings.facebook_url);
   const tiktokUrl = getSocialUrl('tiktok', settings.tiktok_url);
   const openDays = openingHours.filter((day) => day.is_open);
-  const uniqueTimeRanges = Array.from(
-    new Set(openDays.map((day) => `${day.evening_open} – ${day.evening_close}`))
+  const formatHour = (value: string) => value?.slice(0, 5) || '';
+  const timeGroups = Array.from(
+    openDays.reduce((groups, day) => {
+      const range = `${formatHour(day.evening_open)} – ${formatHour(day.evening_close)}`;
+      const existing = groups.get(range) || [];
+      groups.set(range, [...existing, day.day_name.slice(0, 3)]);
+      return groups;
+    }, new Map<string, string[]>())
   );
   const openingLabel = openDays.length === openingHours.length
     ? 'Aperti tutti i giorni'
     : openDays.length > 0
       ? `Aperti ${openDays.map((day) => day.day_name.slice(0, 3)).join(', ')}`
       : 'Orari da configurare';
-  const openingDetail = uniqueTimeRanges.length === 1
-    ? uniqueTimeRanges[0]
-    : 'Orari variabili · vedi Contatti';
+  const openingDetail = timeGroups.length > 0
+    ? timeGroups.map(([range, days]) => `${days.join('/')} ${range}`).join(' · ')
+    : 'Orari da configurare';
 
   return (
     <footer className="bg-[#16251A] text-[#FAF7F2] border-t border-[#233B29] py-6 sm:py-8">
