@@ -4,7 +4,7 @@ import bunGourmetChickenImg from '@/src/assets/images/card_bun_mpastamm.png';
 import rutielloRolledSwirlImg from '@/src/assets/images/card_rutiello_mpastamm.png';
 import padellinoFocacciaImg from '@/src/assets/images/card_padellino_mpastamm.png';
 import friggitoriaPlatterImg from '@/src/assets/images/card_friggitoria_mpastamm.png';
-import tecaCountertopImg from '@/src/assets/images/mpastamm_teca_countertop_1790236473318.jpg';
+import tecaCountertopImg from '@/src/assets/images/mpastamm_teca_museum_v2.png';
 
 export const ASSET_IMAGES = {
   hero: heroVenueImg,

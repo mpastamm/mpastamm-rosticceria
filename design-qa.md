@@ -18,7 +18,7 @@ The source mockup and the live Chrome implementation were opened and inspected d
 
 - Header: script-style white brand mark, dark green navigation, search field, account and cart actions are visually present and aligned with the reference.
 - Hero: `src/pages/HomePage.tsx` uses the supplied `hero_mpastamm_garden.png`, with a cream-to-transparent overlay so the “La Vetrina” copy remains readable.
-- Showcase modules: `src/components/CategoryShowcaseModule.tsx` and `src/components/GlassDisplayCase.tsx` reproduce the editorial image header, green icon badge, rounded paper card, three uniform museum-style glass display cases, and external name/price labels. The five new user-supplied section images are mapped in `src/services/imageMap.ts` to the matching categories.
+- Showcase modules: `src/components/CategoryShowcaseModule.tsx` and `src/components/GlassDisplayCase.tsx` reproduce the editorial image header, green icon badge, rounded paper card, three uniform museum-style glass display cases, and external name/price labels. The five new user-supplied section images are mapped in `src/services/imageMap.ts` to the matching categories, while `src/assets/images/mpastamm_teca_museum_v2.png` provides the approved square frontal glass-box asset with the thin light-wood support.
 - Footer: `src/components/Footer.tsx` now reads address and city from the configured settings rather than placeholder text.
 
 ## Required fidelity surfaces
@@ -48,7 +48,8 @@ The source mockup and the live Chrome implementation were opened and inspected d
 5. Hero refinement pass: removed the duplicate dark “Mpastamm / Sapori autentici…” overlay from `src/pages/HomePage.tsx`, increased the desktop hero to 278px, and moved the image crop to `center 18%`. Fresh Chrome capture at `http://127.0.0.1:3008/` shows all three neon-sign lines clearly.
 6. Display-case and board refinement pass: changed the category layout to a shared six-column grid so all five category boards use the same width, height, and product-card rhythm; centered Padellino and Friggitoria on the second row.
 7. Teca refinement pass: changed product cases to a 5:4 proportion, strengthened the warm internal spotlights and glass-pane treatment, kept the product inset inside the chamber, and rechecked both rows in Chrome at `http://127.0.0.1:3013/`.
-8. No actionable P0/P1/P2 findings remain.
+8. Teca direction correction: replaced the previous display-case asset with the approved square, perfectly frontal glass box and switched the display frame to a square ratio. The latest Chrome spot-check at `http://127.0.0.1:3014/` shows the food image inside the glass, the thin pale-wood support, and no bulky cabinet base.
+9. No actionable P0/P1/P2 findings remain.
 
 ## Implementation Checklist
 
@@ -56,6 +57,7 @@ The source mockup and the live Chrome implementation were opened and inspected d
 - [x] Header, hero, category filters, uniform showcase boards, illuminated glass display cases, and footer aligned to the reference direction.
 - [x] Desktop live render verified in actual Chrome.
 - [x] Hero crop rechecked after the visual fix.
+- [x] Approved square frontal glass-box teca rendered with the thin light-wood support.
 - [x] TypeScript lint passed with `npm run lint`.
 - [x] Production build passed with `npm run build`.
 - [ ] Optional follow-up: capture a dedicated mobile/tablet QA pass when viewport emulation is available.

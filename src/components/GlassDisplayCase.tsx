@@ -30,7 +30,7 @@ export const GlassDisplayCase: React.FC<GlassDisplayCaseProps> = ({
       className="group relative flex h-full flex-col items-center cursor-pointer transition-transform duration-300 hover:-translate-y-1 select-none w-full"
     >
       {/* THE COUNTERTOP GLASS DISPLAY CASE ("TECA DA BANCO") */}
-      <div className="relative w-full aspect-[5/4] overflow-hidden rounded-xl border border-[#A8B9AE]/80 bg-[#F8F3EB] shadow-[0_4px_12px_rgba(44,33,22,0.2)]">
+      <div className="relative w-full aspect-square overflow-hidden rounded-xl border border-[#A8B9AE]/80 bg-[#F8F3EB] shadow-[0_4px_12px_rgba(44,33,22,0.2)]">
         {/* Teca 3D Showcase Frame Image */}
         <img
           src={ASSET_IMAGES.glassDisplayCase}
