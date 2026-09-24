@@ -61,13 +61,10 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => handleNav('/')}
             className="flex flex-col items-start text-left focus:outline-none group"
-            aria-label="Mpastamm Rosticceria"
+            aria-label="Mpastamm"
           >
             <span className="font-script text-3xl sm:text-[2.15rem] text-[#FAF7F2] leading-none tracking-wide group-hover:text-[#D4C3A3] transition-colors">
               Mpastamm
-            </span>
-            <span className="text-[8.5px] tracking-[0.28em] text-[#C2B79E] uppercase font-bold pl-0.5 mt-0.5">
-              ROSTICCERIA
             </span>
           </button>
         </div>
