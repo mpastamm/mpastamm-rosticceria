@@ -1,6 +1,7 @@
 import React from 'react';
-import { MapPin, Phone, Clock, Instagram, ExternalLink, Navigation } from 'lucide-react';
+import { MapPin, Phone, Clock, Instagram, Facebook, Music2, Navigation } from 'lucide-react';
 import { BusinessSettings, OpeningHourDay } from '../types';
+import { getSocialUrl } from '../utils/socialLinks';
 
 interface LocationPageProps {
   settings: BusinessSettings;
@@ -8,6 +9,10 @@ interface LocationPageProps {
 }
 
 export const LocationPage: React.FC<LocationPageProps> = ({ settings, openingHours }) => {
+  const instagramUrl = getSocialUrl('instagram', settings.instagram_url || settings.instagram_handle);
+  const facebookUrl = getSocialUrl('facebook', settings.facebook_url);
+  const tiktokUrl = getSocialUrl('tiktok', settings.tiktok_url);
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 animate-fadeIn">
       {/* Title */}
@@ -59,15 +64,48 @@ export const LocationPage: React.FC<LocationPageProps> = ({ settings, openingHou
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#FAF7F2] text-[#1B3B2B] flex items-center justify-center shrink-0 border border-[#E8DFD1]">
-                <Instagram className="w-5 h-5" />
+            {(instagramUrl || facebookUrl || tiktokUrl) && (
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#FAF7F2] text-[#1B3B2B] flex items-center justify-center shrink-0 border border-[#E8DFD1]">
+                  <Instagram className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-[#7A8A7E] block uppercase">Social</span>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-1">
+                    {instagramUrl && (
+                      <a
+                        href={instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 font-medium text-[#1B3B2B] hover:underline"
+                      >
+                        <Instagram className="w-4 h-4" /> Instagram
+                      </a>
+                    )}
+                    {facebookUrl && (
+                      <a
+                        href={facebookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 font-medium text-[#1B3B2B] hover:underline"
+                      >
+                        <Facebook className="w-4 h-4" /> Facebook
+                      </a>
+                    )}
+                    {tiktokUrl && (
+                      <a
+                        href={tiktokUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 font-medium text-[#1B3B2B] hover:underline"
+                      >
+                        <Music2 className="w-4 h-4" /> TikTok
+                      </a>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="text-xs font-bold text-[#7A8A7E] block uppercase">Social</span>
-                <p className="font-medium text-[#55645A]">{settings.instagram_handle}</p>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="pt-2">
