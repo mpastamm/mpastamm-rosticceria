@@ -72,12 +72,13 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO business_settings
   (id, store_name, tagline, hero_title, hero_description, hero_image_url, hero_image_alt, footer_claim,
    address, city, phone, whatsapp_notification_phone,
-   instagram_handle, orders_enabled, orders_disabled_message, next_day_orders_allowed, slot_interval_minutes)
+   instagram_handle, instagram_url, facebook_url, tiktok_url,
+   orders_enabled, orders_disabled_message, next_day_orders_allowed, slot_interval_minutes)
 VALUES
   ('settings_main', '''Mpastamm', 'Rosticceria & Forno Contemporaneo', 'La Vetrina',
    'I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.', '',
    'Mpastamm Rosticceria Interno e Vetrina', 'Nun è fame, è voglia e sfizio.', 'Via Roma, 42',
-   'Napoli (NA)', '081 123 4567', '', '@mpastamm.rosticceria', true,
+   'Napoli (NA)', '081 123 4567', '', '@mpastamm.rosticceria', 'https://instagram.com/mpastamm.rosticceria', '', '', true,
    'Le prenotazioni per oggi sono terminate. Puoi già prenotare per domani.', true, 15)
 ON CONFLICT (id) DO UPDATE SET
   store_name = EXCLUDED.store_name, tagline = EXCLUDED.tagline, hero_title = EXCLUDED.hero_title,
@@ -85,6 +86,7 @@ ON CONFLICT (id) DO UPDATE SET
   hero_image_alt = EXCLUDED.hero_image_alt, footer_claim = EXCLUDED.footer_claim,
   address = EXCLUDED.address,
   city = EXCLUDED.city, phone = EXCLUDED.phone, instagram_handle = EXCLUDED.instagram_handle,
+  instagram_url = EXCLUDED.instagram_url, facebook_url = EXCLUDED.facebook_url, tiktok_url = EXCLUDED.tiktok_url,
   orders_enabled = EXCLUDED.orders_enabled, orders_disabled_message = EXCLUDED.orders_disabled_message,
   next_day_orders_allowed = EXCLUDED.next_day_orders_allowed, slot_interval_minutes = EXCLUDED.slot_interval_minutes,
   updated_at = now();

@@ -84,6 +84,9 @@ CREATE TABLE IF NOT EXISTS business_settings (
   phone TEXT DEFAULT '081 123 4567',
   whatsapp_notification_phone TEXT DEFAULT '393331234567',
   instagram_handle TEXT DEFAULT '@mpastamm.rosticceria',
+  instagram_url TEXT DEFAULT 'https://instagram.com/mpastamm.rosticceria',
+  facebook_url TEXT,
+  tiktok_url TEXT,
   orders_enabled BOOLEAN DEFAULT true,
   orders_disabled_message TEXT DEFAULT 'Le prenotazioni per oggi sono terminate. Puoi già prenotare per domani.',
   next_day_orders_allowed BOOLEAN DEFAULT true,
@@ -99,6 +102,9 @@ ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_description TEXT DEF
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_image_url TEXT;
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_image_alt TEXT DEFAULT 'Mpastamm Rosticceria Interno e Vetrina';
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS footer_claim TEXT DEFAULT 'Nun è fame, è voglia e sfizio.';
+ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS instagram_url TEXT DEFAULT 'https://instagram.com/mpastamm.rosticceria';
+ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS facebook_url TEXT;
+ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS tiktok_url TEXT;
 
 -- 6. TABELLA ORARI DI APERTURA
 CREATE TABLE IF NOT EXISTS opening_hours (
