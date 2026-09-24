@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS business_settings (
   hero_description TEXT DEFAULT 'I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.',
   hero_image_url TEXT,
   hero_image_alt TEXT DEFAULT 'Mpastamm Rosticceria Interno e Vetrina',
-  footer_claim TEXT DEFAULT 'Nun c''è fame, è voglia e sfizio.',
+  footer_claim TEXT DEFAULT 'Nun è fame, è voglia e sfizio.',
   address TEXT DEFAULT 'Via Roma, 42',
   city TEXT DEFAULT 'Napoli (NA)',
   phone TEXT DEFAULT '081 123 4567',
@@ -98,7 +98,7 @@ ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_title TEXT DEFAULT '
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_description TEXT DEFAULT 'I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.';
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_image_url TEXT;
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_image_alt TEXT DEFAULT 'Mpastamm Rosticceria Interno e Vetrina';
-ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS footer_claim TEXT DEFAULT 'Nun c''è fame, è voglia e sfizio.';
+ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS footer_claim TEXT DEFAULT 'Nun è fame, è voglia e sfizio.';
 
 -- 6. TABELLA ORARI DI APERTURA
 CREATE TABLE IF NOT EXISTS opening_hours (

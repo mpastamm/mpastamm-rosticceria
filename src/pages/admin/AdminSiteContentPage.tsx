@@ -76,7 +76,7 @@ export const AdminSiteContentPage: React.FC<AdminSiteContentPageProps> = ({
       hero_title: formData.hero_title?.trim() || 'La Vetrina',
       hero_description: formData.hero_description?.trim() || '',
       hero_image_alt: formData.hero_image_alt?.trim() || 'Mpastamm Rosticceria Interno e Vetrina',
-      footer_claim: formData.footer_claim?.trim() || "Nun c'è fame, è voglia e sfizio.",
+      footer_claim: formData.footer_claim?.trim() || 'Nun è fame, è voglia e sfizio.',
     });
 
     sortedCategories.forEach((category) => {
@@ -258,7 +258,7 @@ export const AdminSiteContentPage: React.FC<AdminSiteContentPageProps> = ({
           type="text"
           value={formData.footer_claim || ''}
           onChange={(event) => setFormData({ ...formData, footer_claim: event.target.value })}
-          placeholder="Nun c'è fame, è voglia e sfizio."
+          placeholder="Nun è fame, è voglia e sfizio."
           className="w-full px-3.5 py-2.5 rounded-xl border border-[#D8C3A5] text-sm bg-[#FAF7F2] focus:outline-none focus:ring-2 focus:ring-[#1B3B2B]"
         />
       </section>

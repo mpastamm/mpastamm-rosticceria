@@ -427,7 +427,7 @@ export const INITIAL_SETTINGS: BusinessSettings = {
   hero_description: 'I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.',
   hero_image_url: ASSET_IMAGES.hero,
   hero_image_alt: 'Mpastamm Rosticceria Interno e Vetrina',
-  footer_claim: "Nun c'è fame, è voglia e sfizio.",
+  footer_claim: 'Nun è fame, è voglia e sfizio.',
   address: 'Via Roma, 42',
   city: 'Napoli (NA)',
   phone: '081 123 4567',

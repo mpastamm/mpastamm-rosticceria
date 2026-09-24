@@ -76,7 +76,7 @@ INSERT INTO business_settings
 VALUES
   ('settings_main', '''Mpastamm', 'Rosticceria & Forno Contemporaneo', 'La Vetrina',
    'I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.', '',
-   'Mpastamm Rosticceria Interno e Vetrina', 'Nun c''è fame, è voglia e sfizio.', 'Via Roma, 42',
+   'Mpastamm Rosticceria Interno e Vetrina', 'Nun è fame, è voglia e sfizio.', 'Via Roma, 42',
    'Napoli (NA)', '081 123 4567', '', '@mpastamm.rosticceria', true,
    'Le prenotazioni per oggi sono terminate. Puoi già prenotare per domani.', true, 15)
 ON CONFLICT (id) DO UPDATE SET
