@@ -512,7 +512,7 @@ export default function App() {
       />
 
       {/* Footer */}
-      <Footer settings={settings} onNavigate={navigate} />
+      <Footer settings={settings} openingHours={openingHours} onNavigate={navigate} />
     </div>
   );
 }

@@ -1,18 +1,31 @@
 import React from 'react';
 import { MapPin, Clock, Sparkles, Instagram, Facebook, Music2, ShieldCheck } from 'lucide-react';
-import { BusinessSettings } from '../types';
+import { BusinessSettings, OpeningHourDay } from '../types';
 import mpastammLogo from '../assets/images/mpastamm_logo_white.png';
 import { getSocialUrl } from '../utils/socialLinks';
 
 interface FooterProps {
   settings: BusinessSettings;
+  openingHours: OpeningHourDay[];
   onNavigate: (path: string) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ settings, onNavigate }) => {
+export const Footer: React.FC<FooterProps> = ({ settings, openingHours, onNavigate }) => {
   const instagramUrl = getSocialUrl('instagram', settings.instagram_url || settings.instagram_handle);
   const facebookUrl = getSocialUrl('facebook', settings.facebook_url);
   const tiktokUrl = getSocialUrl('tiktok', settings.tiktok_url);
+  const openDays = openingHours.filter((day) => day.is_open);
+  const uniqueTimeRanges = Array.from(
+    new Set(openDays.map((day) => `${day.evening_open} – ${day.evening_close}`))
+  );
+  const openingLabel = openDays.length === openingHours.length
+    ? 'Aperti tutti i giorni'
+    : openDays.length > 0
+      ? `Aperti ${openDays.map((day) => day.day_name.slice(0, 3)).join(', ')}`
+      : 'Orari da configurare';
+  const openingDetail = uniqueTimeRanges.length === 1
+    ? uniqueTimeRanges[0]
+    : 'Orari variabili · vedi Contatti';
 
   return (
     <footer className="bg-[#16251A] text-[#FAF7F2] border-t border-[#233B29] py-6 sm:py-8">
@@ -42,8 +55,14 @@ export const Footer: React.FC<FooterProps> = ({ settings, onNavigate }) => {
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-[#C2B79E] shrink-0" />
               <div className="text-left">
-                <span className="block font-medium leading-tight">Aperti tutti i giorni</span>
-                <span className="text-[11px] text-[#A69E8F] leading-tight">10:00 - 22:00</span>
+                <span className="block font-medium leading-tight">{openingLabel}</span>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/dove-siamo')}
+                  className="text-[11px] text-[#A69E8F] leading-tight hover:text-white hover:underline text-left"
+                >
+                  {openingDetail}
+                </button>
               </div>
             </div>
 
