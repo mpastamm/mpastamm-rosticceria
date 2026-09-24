@@ -54,8 +54,8 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#16251A] text-[#FAF7F2] border-b border-[#243B2A] shadow-md">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 h-18 sm:h-20 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 bg-[#1D2B17] text-[#FAF7F2] border-b border-[#34452A] shadow-[0_3px_16px_rgba(22,37,26,0.14)]">
+      <div className="max-w-[1320px] mx-auto px-5 sm:px-8 h-16 flex items-center justify-between gap-4">
         {/* Left: Brand Logo matching screenshot */}
         <div className="flex items-center gap-3">
           <button
@@ -63,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex flex-col items-start text-left focus:outline-none group"
             aria-label="Mpastamm Rosticceria"
           >
-            <span className="font-script text-3xl sm:text-4xl text-[#FAF7F2] leading-none tracking-wide group-hover:text-[#D4C3A3] transition-colors">
+            <span className="font-script text-3xl sm:text-[2.15rem] text-[#FAF7F2] leading-none tracking-wide group-hover:text-[#D4C3A3] transition-colors">
               Mpastamm
             </span>
             <span className="text-[8.5px] tracking-[0.28em] text-[#C2B79E] uppercase font-bold pl-0.5 mt-0.5">
@@ -73,7 +73,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Center: Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-[#D8D2C5]">
+        <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-[#D8D2C5]">
           {navLinks.map((link) => {
             const isActive =
               (link.path === '/' && (currentPath === '/' || currentPath === '/vetrina')) ||
@@ -83,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 key={link.path}
                 onClick={() => handleNav(link.path)}
-                className={`transition-all py-1 relative text-sm tracking-wide ${
+              className={`transition-all py-1 relative text-[13px] tracking-wide ${
                   isActive
                     ? 'text-white font-semibold'
                     : 'text-[#C5BFB2] hover:text-white'
@@ -111,7 +111,7 @@ export const Header: React.FC<HeaderProps> = ({
               value={searchVal}
               onChange={handleSearchChange}
               placeholder="Cerca un prodotto..."
-              className="w-48 lg:w-64 pl-9 pr-3.5 py-1.5 text-xs text-[#FAF7F2] placeholder-[#8DA392] bg-[#223929]/80 hover:bg-[#223929] focus:bg-[#223929] border border-[#2F4D37] rounded-full focus:outline-none focus:ring-1 focus:ring-[#8DA392] transition-all"
+            className="w-52 lg:w-[17rem] pl-9 pr-3.5 py-2 text-xs text-[#FAF7F2] placeholder-[#AAB5A0] bg-[#273B21]/80 hover:bg-[#2C4326] focus:bg-[#2C4326] border border-[#506046] rounded-full focus:outline-none focus:ring-1 focus:ring-[#B4C0A4] transition-all"
             />
           </form>
 

@@ -93,36 +93,37 @@ export const HomePage: React.FC<HomePageProps> = ({
   const friggitoriaProducts = products.filter((p) => p.category_id === friggitoriaCategory.id && p.visible);
 
   return (
-    <div className="bg-[#E5DFD4] min-h-screen text-[#1C211E] pb-16 selection:bg-[#16251A] selection:text-white">
+    <div className="bg-[#ECE6DB] min-h-screen text-[#1C211E] pb-16 selection:bg-[#16251A] selection:text-white">
       {/* 1. HERO SECTION (EXACT MATCH TO UPLOADED IMAGE) */}
       <section className="relative w-full overflow-hidden bg-[#D8D0C3] border-b border-[#CFC5B6]">
         {/* Background Interior Photography of 'Mpastamm */}
-        <div className="relative w-full min-h-[360px] sm:min-h-[420px] lg:min-h-[480px] flex items-center">
+        <div className="mpastamm-hero relative flex items-center">
           {/* Panoramic Venue Image */}
           <div className="absolute inset-0 z-0">
             <img
               src={ASSET_IMAGES.hero}
               alt="Mpastamm Rosticceria Interno e Vetrina"
-              className="w-full h-full object-cover object-center brightness-[0.98] contrast-[1.02]"
+              className="w-full h-full object-cover object-[center_27%] brightness-[0.98] contrast-[1.02]"
             />
             {/* Subtle soft gradient overlay to ensure text contrast while retaining full venue look */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#EAE3D7]/90 via-[#EAE3D7]/50 to-transparent sm:max-w-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#F2ECE1]/98 via-[#F2ECE1]/83 from-0% via-[35%] to-transparent lg:w-[62%]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
           </div>
 
           {/* Hero Content Container */}
-          <div className="relative z-10 max-w-[1440px] mx-auto w-full px-5 sm:px-10 lg:px-12 py-10 sm:py-14 flex items-center justify-between">
+          <div className="relative z-10 max-w-[1320px] mx-auto w-full px-5 sm:px-10 lg:px-8 py-8 sm:py-10 lg:py-4 flex items-center justify-between">
             {/* Left Typography Block */}
             <div className="max-w-lg space-y-2 sm:space-y-3">
-              <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-[#16251A] leading-[1.05]">
+              <h1 className="font-serif text-5xl sm:text-6xl lg:text-[4.05rem] font-bold tracking-[-0.045em] text-[#16251A] leading-[0.98]">
                 La Vetrina
               </h1>
 
-              <p className="text-base sm:text-lg lg:text-xl text-[#2C2720] font-normal leading-snug">
+              <p className="text-base sm:text-lg lg:text-[1.05rem] text-[#2C2720] font-normal leading-snug max-w-[520px]">
                 I nostri lievitati, la tradizione e il gusto di sempre, ogni giorno per te.
               </p>
 
               {/* Warm Golden/Caramel Brush Underline Accent matching screenshot */}
-              <div className="pt-1">
+              <div className="pt-0.5">
                 <svg
                   className="w-28 sm:w-36 h-3 text-[#B88746]"
                   viewBox="0 0 140 10"
@@ -141,8 +142,8 @@ export const HomePage: React.FC<HomePageProps> = ({
             </div>
 
             {/* Right Side Vertical Typographic Branding matching screenshot */}
-            <div className="hidden md:flex flex-col items-end text-right space-y-1 select-none pr-2 lg:pr-6">
-              <span className="font-script text-3xl lg:text-4xl text-[#16251A] drop-shadow-xs">
+            <div className="hidden md:flex flex-col items-end text-right space-y-1 select-none pr-2 lg:pr-8">
+              <span className="font-script text-3xl lg:text-[2.6rem] text-[#16251A] drop-shadow-xs">
                 Mpastamm
               </span>
               <div className="text-[10px] lg:text-[11px] font-bold tracking-[0.25em] text-[#332C24] leading-relaxed flex flex-col items-end">
@@ -157,8 +158,8 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* 2. CATEGORIES FILTER BAR (FLOATING OVER THE VETRINA SHOWCASE) */}
-      <section className="sticky top-18 sm:top-20 z-20 bg-[#E5DFD4]/95 backdrop-blur-md py-4 sm:py-5 border-b border-[#D8CFBF] shadow-xs">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8">
+      <section className="sticky top-16 z-20 bg-[#ECE6DB]/96 backdrop-blur-md py-2.5 sm:py-3 border-b border-[#D8CFBF] shadow-[0_2px_8px_rgba(77,62,42,0.05)]">
+        <div className="w-full px-4 sm:px-8">
           <CategoryFilter
             categories={categories}
             selectedCategoryId={selectedCategoryId}
@@ -168,7 +169,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* 3. SHOWCASE CONTENT: THE VETRINA MODULES (EXACT SCREENSHOT LAYOUT) */}
-      <main className="max-w-[1440px] mx-auto px-4 sm:px-8 pt-6 sm:pt-8">
+      <main className="w-full px-4 sm:px-8 pt-3 sm:pt-4">
         {/* If search query is active or a single category is selected (not "all") */}
         {searchQuery.trim() || selectedCategoryId !== 'all' ? (
           <div className="space-y-6">

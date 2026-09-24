@@ -172,7 +172,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     .sort((a, b) => a.display_order - b.display_order);
 
   return (
-    <div className="w-full flex items-center justify-start lg:justify-center overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth">
+    <div className="w-full flex items-center justify-start overflow-x-auto no-scrollbar py-2 px-1 scroll-smooth">
       <div className="flex items-center gap-3 sm:gap-3.5 shrink-0">
         {/* 1. "Tutte le categorie" Pill Button (Active Forest Green in Screenshot) */}
         <button

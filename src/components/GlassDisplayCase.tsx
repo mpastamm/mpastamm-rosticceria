@@ -30,7 +30,7 @@ export const GlassDisplayCase: React.FC<GlassDisplayCaseProps> = ({
       className="group relative flex flex-col items-center cursor-pointer transition-transform duration-300 hover:-translate-y-1 select-none w-full"
     >
       {/* THE COUNTERTOP GLASS DISPLAY CASE ("TECA DA BANCO") */}
-      <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-xl border border-[#523A25]/80 bg-[#1F140C]">
+      <div className="relative w-full aspect-[1/1] rounded-xl overflow-hidden shadow-[0_3px_9px_rgba(44,33,22,0.2)] border border-[#D7C8B4] bg-[#F8F3EB]">
         {/* Teca 3D Showcase Frame Image */}
         <img
           src={ASSET_IMAGES.glassDisplayCase}
@@ -92,15 +92,16 @@ export const GlassDisplayCase: React.FC<GlassDisplayCaseProps> = ({
         {/* REALISTIC GLASS FRONT SHIMMER */}
         <div className="absolute inset-x-[11%] top-[14%] bottom-[27%] bg-gradient-to-tr from-transparent via-white/[0.05] to-white/[0.15] pointer-events-none rounded" />
 
-        {/* DYNAMIC LABEL PLAQUE AT THE BASE OF THE TECA (MATCHING SCREENSHOT) */}
-        <div className="absolute inset-x-[14%] bottom-[5%] h-[20%] flex flex-col items-center justify-center text-center px-1 pointer-events-none">
-          <h4 className="font-serif font-bold text-[10px] sm:text-[11.5px] lg:text-[12.5px] text-[#16251A] leading-tight truncate w-full tracking-tight">
-            {name}
-          </h4>
-          <span className="font-sans font-bold text-[9px] sm:text-[10.5px] lg:text-[11px] text-[#8F6429] mt-0.5 leading-none">
-            € {price.toFixed(2).replace('.', ',')}
-          </span>
-        </div>
+      </div>
+
+      {/* Editorial product label below the glass case, as in the reference. */}
+      <div className="w-full px-1 pt-1.5 text-center">
+        <h4 className="font-serif font-semibold text-[10px] sm:text-[11px] lg:text-[12px] text-[#29231C] leading-tight truncate w-full tracking-tight">
+          {name}
+        </h4>
+        <span className="font-sans font-semibold text-[9px] sm:text-[10px] lg:text-[10.5px] text-[#6D4A25] leading-none">
+          € {price.toFixed(2).replace('.', ',')}
+        </span>
       </div>
     </div>
   );

@@ -28,8 +28,8 @@ export const Footer: React.FC<FooterProps> = ({ settings, onNavigate }) => {
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-[#C2B79E] shrink-0" />
               <div className="text-left">
-                <span className="block font-medium leading-tight">Via Example 123</span>
-                <span className="text-[11px] text-[#A69E8F] leading-tight">Napoli</span>
+                <span className="block font-medium leading-tight">{settings.address}</span>
+                <span className="text-[11px] text-[#A69E8F] leading-tight">{settings.city}</span>
               </div>
             </div>
 

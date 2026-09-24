@@ -1,4 +1,4 @@
-import heroVenueImg from '@/src/assets/images/mpastamm_hero_venue_1790236232617.jpg';
+import heroVenueImg from '@/src/assets/images/hero_mpastamm_garden.png';
 import saltimboccaPanuozzoImg from '@/src/assets/images/saltimbocca_panuozzo_1790236249425.jpg';
 import bunGourmetChickenImg from '@/src/assets/images/bun_gourmet_chicken_1790236267095.jpg';
 import rutielloRolledSwirlImg from '@/src/assets/images/rutiello_rolled_swirl_1790236285719.jpg';
