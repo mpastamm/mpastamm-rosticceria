@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapPin, Clock, Sparkles, Instagram, Facebook, Music2, ShieldCheck } from 'lucide-react';
 import { BusinessSettings, OpeningHourDay } from '../types';
-import mpastammLogo from '../assets/images/mpastamm_logo_white.png';
+import mpastammLogo from '../assets/images/mpastamm_logo_white.ts';
 import { getSocialUrl } from '../utils/socialLinks';
 import { INITIAL_SITE_CONTENT } from '../services/storage';
 
@@ -41,7 +41,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, openingHours, onNaviga
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           {/* Left: Brand Logo */}
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left shrink-0">
-              <img
+            <img
               src={content.logo_image_url || mpastammLogo}
               alt="Mpastamm - officina dei lievitati"
               className="block w-36 sm:w-44 h-auto object-contain"

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingBag, Search, User, Menu, X } from 'lucide-react';
 import { BusinessSettings } from '../types';
-import mpastammLogo from '../assets/images/mpastamm_logo_white.png';
+import mpastammLogo from '../assets/images/mpastamm_logo_white.ts';
 import { INITIAL_SITE_CONTENT } from '../services/storage';
 
 interface HeaderProps {
