@@ -56,6 +56,10 @@ CREATE TABLE IF NOT EXISTS orders (
   subtotal NUMERIC(10, 2) NOT NULL,
   total NUMERIC(10, 2) NOT NULL,
   status TEXT NOT NULL DEFAULT 'NUOVO' CHECK (status IN ('NUOVO', 'ACCETTATO', 'IN PREPARAZIONE', 'PRONTO', 'RITIRATO', 'ANNULLATO')),
+  payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded')),
+  stripe_checkout_session_id TEXT,
+  stripe_payment_intent_id TEXT,
+  paid_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -64,6 +68,13 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS fulfillment_method TEXT NOT NULL DEF
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_latitude NUMERIC(10, 7);
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_longitude NUMERIC(10, 7);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'pending';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_checkout_session_id TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_payment_status_check;
+ALTER TABLE orders ADD CONSTRAINT orders_payment_status_check
+  CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded'));
 
 -- 4. TABELLA VOCI ORDINE (SNAPSHOT PRODOTTO)
 CREATE TABLE IF NOT EXISTS order_items (

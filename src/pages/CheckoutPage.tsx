@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Clock, Calendar, Phone, User, FileText, CheckCircle2, ShieldAlert, MapPin, Store, Truck, Navigation } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, Phone, User, FileText, CheckCircle2, ShieldAlert, MapPin, Store, Truck, Navigation, CreditCard } from 'lucide-react';
 import { CartItem, Order, BusinessSettings, OpeningHourDay, FulfillmentMethod } from '../types';
 import { StorageService } from '../services/storage';
-import { sendOrderNotificationToBackend } from '../services/whatsapp';
 
 interface CheckoutPageProps {
   items: CartItem[];
@@ -177,18 +176,34 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         subtotal: total,
         total: total,
         status: 'NUOVO',
+        payment_status: 'pending',
         items: orderItems,
       });
 
-      // Notify owner backend via WhatsApp Cloud API
-      await sendOrderNotificationToBackend(createdOrder);
+      // Stripe Checkout is created server-side. The server recalculates the total
+      // from the current product prices before creating the payment session.
+      const checkoutResponse = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: createdOrder }),
+      });
+      const checkoutData = await checkoutResponse.json().catch(() => ({}));
+      if (!checkoutResponse.ok || !checkoutData.checkoutUrl) {
+        StorageService.updateOrder(createdOrder.id, { payment_status: 'failed' });
+        throw new Error(checkoutData.error || 'Pagamento Stripe non disponibile');
+      }
+
+      StorageService.updateOrder(createdOrder.id, {
+        payment_status: 'pending',
+        stripe_checkout_session_id: checkoutData.sessionId,
+      });
 
       // Trigger callback
       onOrderCompleted(createdOrder);
-      onNavigate(`/ordine-confermato/${createdOrder.order_number}`);
+      window.location.assign(checkoutData.checkoutUrl);
     } catch (err: any) {
-      console.error('Error creating order:', err);
-      alert('Si è verificato un errore durante la registrazione dell\'ordine. Riprova.');
+      console.error('Error creating Stripe order:', err);
+      alert(err?.message || 'Si è verificato un errore durante l\'avvio del pagamento. Riprova.');
     } finally {
       setIsSubmitting(false);
     }
@@ -227,7 +242,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             Completa la Prenotazione
           </h1>
           <p className="text-xs sm:text-sm text-[#55645A]">
-            Nessuna registrazione necessaria. Pagherai {fulfillmentMethod === 'pickup' ? 'al ritiro in negozio' : 'alla consegna'}.
+            Nessuna registrazione necessaria. Il pagamento avviene online in modo sicuro con Stripe.
           </p>
         </div>
       </div>
@@ -327,7 +342,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 }`}
               >
                 <span className="flex items-center gap-2 text-sm font-bold text-[#1C211E]"><Store className="w-4 h-4 text-[#1B3B2B]" /> Ritiro in negozio</span>
-                <span className="block text-xs text-[#7A8A7E] mt-1">Passa da noi e paga al banco.</span>
+                <span className="block text-xs text-[#7A8A7E] mt-1">Prenota, paga online e passa a ritirare.</span>
               </button>
               <button
                 type="button"
@@ -339,7 +354,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 }`}
               >
                 <span className="flex items-center gap-2 text-sm font-bold text-[#1C211E]"><Truck className="w-4 h-4 text-[#1B3B2B]" /> Consegna a domicilio</span>
-                <span className="block text-xs text-[#7A8A7E] mt-1">Indica dove vuoi ricevere l’ordine.</span>
+                <span className="block text-xs text-[#7A8A7E] mt-1">Indica dove vuoi ricevere l’ordine e paga online.</span>
               </button>
             </div>
 
@@ -493,14 +508,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               </div>
             </div>
 
-            {/* Payment at Pickup / Delivery Trust Badge */}
+            {/* Stripe Payment Trust Badge */}
             <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#E8DFD1] space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-[#1B3B2B] uppercase tracking-wider">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>{fulfillmentMethod === 'pickup' ? 'Pagamento al Ritiro' : 'Pagamento alla Consegna'}</span>
+                <CreditCard className="w-4 h-4 text-emerald-600" />
+                <span>Pagamento online con Stripe</span>
               </div>
               <p className="text-xs text-[#55645A] leading-relaxed">
-                Nessun pagamento anticipato con carta. Pagherai al momento della {fulfillmentMethod === 'pickup' ? 'consegna al banco' : 'consegna a domicilio'}.
+                Dopo aver confermato verrai reindirizzato alla pagina sicura Stripe per pagare con carta o con i metodi disponibili. Vale sia per il ritiro in negozio sia per la consegna.
               </p>
             </div>
 
@@ -511,9 +526,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               className="w-full py-4 bg-[#1B3B2B] hover:bg-[#28553E] disabled:opacity-50 text-white font-bold text-sm sm:text-base rounded-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2 min-h-[50px]"
             >
               {isSubmitting ? (
-                <span>Registrazione in corso...</span>
+                <span>Avvio pagamento sicuro...</span>
               ) : (
-                <span>CONFERMA ORDINE</span>
+                <span>PAGA E CONFERMA CON STRIPE</span>
               )}
             </button>
           </div>

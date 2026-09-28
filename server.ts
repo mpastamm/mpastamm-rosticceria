@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { onRequestPost as createCheckoutSession } from './functions/api/create-checkout-session';
+import { onRequestGet as getStripeSession } from './functions/api/stripe-session';
 
 dotenv.config();
 
@@ -12,6 +14,34 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '100kb' }));
+
+// Local adapters for the same Cloudflare Pages Functions used in production.
+// The Stripe secret is read only from .env/.env.local and never reaches the browser.
+app.post('/api/create-checkout-session', async (req: Request, res: Response) => {
+  try {
+    const request = new globalThis.Request(`http://${req.headers.host || 'localhost:3000'}/api/create-checkout-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+    });
+    const response = await createCheckoutSession({ request, env: process.env });
+    res.status(response.status).type('application/json').send(await response.text());
+  } catch (error: any) {
+    res.status(500).json({ error: error?.message || 'Errore avvio Stripe' });
+  }
+});
+
+app.get('/api/stripe-session', async (req: Request, res: Response) => {
+  try {
+    const query = new URLSearchParams();
+    if (typeof req.query.session_id === 'string') query.set('session_id', req.query.session_id);
+    const request = new globalThis.Request(`http://${req.headers.host || 'localhost:3000'}/api/stripe-session?${query.toString()}`);
+    const response = await getStripeSession({ request, env: process.env });
+    res.status(response.status).type('application/json').send(await response.text());
+  } catch (error: any) {
+    res.status(500).json({ error: error?.message || 'Errore verifica Stripe' });
+  }
+});
 
 // API: Notify Order via WhatsApp Cloud API
 app.post('/api/notify-order', async (req: Request, res: Response) => {

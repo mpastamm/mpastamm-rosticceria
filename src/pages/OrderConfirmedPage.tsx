@@ -1,7 +1,8 @@
-import React from 'react';
-import { CheckCircle2, MessageSquare, Calendar, Clock, ArrowRight, Share2, Printer, Store, Truck, ExternalLink } from 'lucide-react';
-import { Order, BusinessSettings } from '../types';
+import React, { useEffect, useState } from 'react';
+import { CheckCircle2, MessageSquare, Calendar, Clock, ArrowRight, Share2, Printer, Store, Truck, ExternalLink, CreditCard, Loader2 } from 'lucide-react';
+import { Order, BusinessSettings, PaymentStatus } from '../types';
 import { generateDirectWhatsAppUrl, formatWhatsAppMessage } from '../services/whatsapp';
+import { StorageService } from '../services/storage';
 
 interface OrderConfirmedPageProps {
   order: Order | null;
@@ -14,6 +15,43 @@ export const OrderConfirmedPage: React.FC<OrderConfirmedPageProps> = ({
   settings,
   onNavigate,
 }) => {
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(order?.payment_status || 'pending');
+
+  useEffect(() => {
+    if (!order) return;
+    setPaymentStatus(order.payment_status || 'pending');
+
+    const sessionId = new URLSearchParams(window.location.search).get('session_id');
+    if (!sessionId) return;
+
+    let active = true;
+    fetch(`/api/stripe-session?session_id=${encodeURIComponent(sessionId)}`)
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'Impossibile verificare il pagamento');
+        return data;
+      })
+      .then((data) => {
+        if (!active) return;
+        const nextStatus: PaymentStatus = data.paymentStatus === 'paid' ? 'paid' : 'pending';
+        setPaymentStatus(nextStatus);
+        StorageService.updateOrder(order.id, {
+          payment_status: nextStatus,
+          stripe_checkout_session_id: data.sessionId,
+          stripe_payment_intent_id: data.paymentIntentId || undefined,
+          paid_at: nextStatus === 'paid' ? new Date().toISOString() : undefined,
+        });
+        if (nextStatus === 'paid') StorageService.clearCart();
+      })
+      .catch((error) => {
+        console.warn('Pagamento Stripe ancora in verifica:', error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [order?.id]);
+
   if (!order) {
     return (
       <div className="max-w-md mx-auto py-16 text-center space-y-4 px-4">
@@ -52,24 +90,25 @@ export const OrderConfirmedPage: React.FC<OrderConfirmedPageProps> = ({
   const deliveryMapsUrl = order.delivery_latitude != null && order.delivery_longitude != null
     ? `https://www.google.com/maps?q=${order.delivery_latitude},${order.delivery_longitude}`
     : '';
+  const isPaymentConfirmed = paymentStatus === 'paid';
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6 animate-fadeIn">
       {/* Success Badge & Headline */}
       <div className="text-center space-y-3">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-xs">
-          <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 stroke-[2.5]" />
+        <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto shadow-xs ${isPaymentConfirmed ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+          {isPaymentConfirmed ? <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 stroke-[2.5]" /> : <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 animate-spin" />}
         </div>
 
         <div>
-          <span className="text-xs uppercase tracking-widest text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-            Prenotazione Ricevuta
+            <span className={`text-xs uppercase tracking-widest font-bold px-3 py-1 rounded-full ${isPaymentConfirmed ? 'text-emerald-800 bg-emerald-50 border border-emerald-200' : 'text-amber-800 bg-amber-50 border border-amber-200'}`}>
+              {isPaymentConfirmed ? 'Pagamento confermato' : 'Pagamento in verifica'}
           </span>
           <h1 className="font-display text-2xl sm:text-4xl font-bold text-[#1C211E] mt-3">
             Grazie, {order.customer_name}!
           </h1>
           <p className="text-sm sm:text-base text-[#55645A] mt-1">
-            Il tuo ordine <strong className="text-[#1B3B2B] font-mono text-base sm:text-lg">{order.order_number}</strong> è stato registrato nei nostri sistemi.
+            Il tuo ordine <strong className="text-[#1B3B2B] font-mono text-base sm:text-lg">{order.order_number}</strong> {isPaymentConfirmed ? 'è stato pagato e registrato nei nostri sistemi.' : 'è stato ricevuto; stiamo verificando il pagamento.'}
           </p>
         </div>
       </div>
@@ -97,7 +136,7 @@ export const OrderConfirmedPage: React.FC<OrderConfirmedPageProps> = ({
               Stato
             </span>
             <span className="inline-block px-2.5 py-1 bg-sky-100 text-sky-800 font-bold text-xs rounded-md mt-0.5">
-              IN ATTESA DI CONFERMA
+              {isPaymentConfirmed ? 'PAGAMENTO CONFERMATO' : 'IN ATTESA DI VERIFICA'}
             </span>
           </div>
         </div>
@@ -138,13 +177,13 @@ export const OrderConfirmedPage: React.FC<OrderConfirmedPageProps> = ({
         {/* Total & Payment Method */}
         <div className="pt-4 border-t border-[#E8DFD1] space-y-2">
           <div className="flex justify-between items-baseline font-bold text-lg text-[#1C211E]">
-            <span>Totale da saldare {isDelivery ? 'alla consegna' : 'al banco'}</span>
+            <span>{isPaymentConfirmed ? 'Totale pagato con Stripe' : 'Totale ordine'}</span>
             <span className="font-mono tabular-nums text-2xl text-[#1B3B2B]">
               €{order.total.toFixed(2).replace('.', ',')}
             </span>
           </div>
           <p className="text-xs text-[#7A8A7E]">
-            Modalità: <strong>Pagamento {isDelivery ? 'alla consegna' : 'al ritiro'}</strong> (Contanti o Carta)
+            Modalità: <strong className="inline-flex items-center gap-1"><CreditCard className="w-3.5 h-3.5" /> Pagamento online con Stripe</strong>
           </p>
         </div>
 

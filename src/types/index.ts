@@ -44,6 +44,8 @@ export type OrderStatus =
 
 export type FulfillmentMethod = 'pickup' | 'delivery';
 
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+
 export interface OrderItem {
   id: string;
   order_id?: string;
@@ -72,6 +74,10 @@ export interface Order {
   subtotal: number;
   total: number;
   status: OrderStatus;
+  payment_status?: PaymentStatus;
+  stripe_checkout_session_id?: string;
+  stripe_payment_intent_id?: string;
+  paid_at?: string;
   items: OrderItem[];
   created_at: string;
   updated_at: string;

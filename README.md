@@ -5,8 +5,8 @@ Web app responsive per la vetrina digitale, le prenotazioni d'asporto e la gesti
 ## Funzionalità
 
 - vetrina pubblica con categorie, ricerca e disponibilità;
-- scheda prodotto, carrello e prenotazione con pagamento al ritiro;
-- conferma ordine e notifica WhatsApp opzionale;
+- scheda prodotto, carrello e prenotazione con pagamento online Stripe per ritiro o consegna;
+- conferma ordine, verifica webhook Stripe e notifica WhatsApp opzionale dopo il pagamento;
 - area admin per prodotti, categorie, ordini, scorte, orari, impostazioni e contenuti del sito;
 - fallback locale per sviluppo e predisposizione Supabase per database, auth, storage e realtime.
 
@@ -31,6 +31,20 @@ VITE_DEMO_ADMIN_PASSWORD=change-me-locally
 
 La modalità demo non va usata in produzione.
 
+## Stripe Checkout
+
+Il checkout viene creato lato server dalle Pages Functions in `functions/api`. Il server ricalcola gli importi leggendo i prodotti da Supabase, quindi il browser non può modificare il prezzo dell'ordine. Per il deploy Cloudflare Pages configurare queste variabili in **Settings → Environment variables**:
+
+```env
+APP_URL=https://mpastamm.it
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+SUPABASE_URL=https://gwmvfdfoiybuwkkmaknf.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` e `SUPABASE_SERVICE_ROLE_KEY` devono essere variabili **segrete**, mai inserite nel codice o nelle variabili `VITE_*`. In Stripe creare un webhook verso `https://mpastamm.it/api/stripe-webhook` per gli eventi `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed` e `checkout.session.expired`. Prima del passaggio in produzione usare le chiavi `sk_test_...`; dopo il collaudo sostituirle con le chiavi live.
+
 ## Supabase
 
 1. Creare un progetto Supabase.
@@ -52,4 +66,4 @@ npm run start
 
 ## Stato del progetto
 
-La UI e i flussi locali sono pronti per test e demo. Prima del deploy pubblico vanno completati il collegamento persistente a Supabase, l'autenticazione admin server-side, le policy RLS definitive e la validazione server-side degli ordini.
+La UI, il checkout Stripe e la validazione server-side degli importi sono pronti. Restano da inserire solo le chiavi Stripe/Supabase/WhatsApp nelle variabili protette di Cloudflare e da fare un pagamento di test con la carta Stripe `4242 4242 4242 4242` in modalità Test.

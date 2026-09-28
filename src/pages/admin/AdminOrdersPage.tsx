@@ -183,6 +183,15 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
                           {order.customer_name} {order.customer_surname}
                         </h4>
                         <OrderStatusBadge status={order.status} size="sm" />
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide ${
+                          order.payment_status === 'paid'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : order.payment_status === 'failed'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {order.payment_status === 'paid' ? 'Stripe pagato' : order.payment_status === 'failed' ? 'Pagamento fallito' : 'Stripe in attesa'}
+                        </span>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-[#55645A] mt-1">
@@ -295,6 +304,13 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
                         )}
                       </div>
                     )}
+
+                    <div className="bg-white p-4 rounded-xl border border-[#E8DFD1] flex items-center justify-between gap-3 text-sm">
+                      <span className="font-bold text-[#1C211E]">Pagamento</span>
+                      <span className={`font-bold ${order.payment_status === 'paid' ? 'text-emerald-700' : order.payment_status === 'failed' ? 'text-red-700' : 'text-amber-700'}`}>
+                        {order.payment_status === 'paid' ? 'Confermato con Stripe' : order.payment_status === 'failed' ? 'Non completato' : 'In attesa di Stripe'}
+                      </span>
+                    </div>
 
                     {/* Change Status Fast Buttons (Section 15: One touch) */}
                     <div>

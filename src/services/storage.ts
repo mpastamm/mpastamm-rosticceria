@@ -875,6 +875,20 @@ export class StorageService {
     return orders[idx];
   }
 
+  static updateOrder(orderId: string, updates: Partial<Order>): Order | null {
+    const orders = this.getOrders();
+    const idx = orders.findIndex((o) => o.id === orderId || o.order_number === orderId);
+    if (idx === -1) return null;
+
+    orders[idx] = {
+      ...orders[idx],
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+    this.saveOrders(orders);
+    return orders[idx];
+  }
+
   static createOrder(orderInput: Omit<Order, 'id' | 'order_number' | 'created_at' | 'updated_at'>): Order {
     const orders = this.getOrders();
     const nextNum = (orders.length + 49).toString().padStart(4, '0');

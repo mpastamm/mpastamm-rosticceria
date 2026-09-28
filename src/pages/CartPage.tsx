@@ -153,7 +153,7 @@ export const CartPage: React.FC<CartPageProps> = ({
           </div>
 
           <p className="text-xs text-[#7A8A7E] bg-[#FAF7F2] p-3 rounded-xl border border-[#E8DFD1]">
-            💡 Nel passaggio successivo scegli se ritirare in negozio o ricevere l’ordine a domicilio. Pagamento alla consegna, in contanti o con POS.
+            💡 Nel passaggio successivo scegli se ritirare in negozio o ricevere l’ordine a domicilio. Il pagamento avviene online tramite Stripe.
           </p>
 
           <button

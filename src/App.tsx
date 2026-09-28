@@ -465,8 +465,6 @@ export default function App() {
             openingHours={openingHours}
             onOrderCompleted={(order) => {
               setLastPlacedOrder(order);
-              StorageService.clearCart();
-              setCartItems([]);
             }}
             onNavigate={navigate}
           />
