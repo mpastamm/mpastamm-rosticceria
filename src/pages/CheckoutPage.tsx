@@ -1,12 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Clock, Calendar, Phone, User, FileText, CheckCircle2, ShieldAlert, MapPin, Store, Truck, Navigation, CreditCard } from 'lucide-react';
-import { CartItem, Order, BusinessSettings, OpeningHourDay, FulfillmentMethod } from '../types';
+import React, { useState } from 'react';
+import { ArrowLeft, Calendar, Phone, User, FileText, MapPin, Store, Truck, Navigation, CreditCard } from 'lucide-react';
+import { CartItem, Order, BusinessSettings, FulfillmentMethod } from '../types';
 import { StorageService } from '../services/storage';
 
 interface CheckoutPageProps {
   items: CartItem[];
   settings: BusinessSettings;
-  openingHours: OpeningHourDay[];
   onOrderCompleted: (order: Order) => void;
   onNavigate: (path: string) => void;
 }
@@ -18,21 +17,13 @@ function formatLocalDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function timeToMinutes(value: string): number {
-  const [hours, minutes] = value.split(':').map(Number);
-  return hours * 60 + minutes;
-}
-
-function minutesToTime(value: number): string {
-  const hours = Math.floor(value / 60);
-  const minutes = value % 60;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+function formatLocalTime(date: Date): string {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   items,
   settings,
-  openingHours,
   onOrderCompleted,
   onNavigate,
 }) => {
@@ -44,54 +35,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [deliveryCoordinates, setDeliveryCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
-  const [pickupDate, setPickupDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
-  const [pickupTime, setPickupTime] = useState('19:30');
   const [generalNotes, setGeneralNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; phone?: string; deliveryAddress?: string }>({});
 
   const total = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-
-  const selectedOpeningDay = useMemo(() => {
-    const selected = new Date(`${pickupDate}T12:00:00`);
-    return openingHours.find((day) => day.day_of_week === selected.getDay());
-  }, [openingHours, pickupDate]);
-
-  // Generate pickup slots from the opening hours configured by the admin.
-  const availableSlots = useMemo(() => {
-    const slots: string[] = [];
-    const interval = settings.slot_interval_minutes || 15;
-    if (!selectedOpeningDay?.is_open) return slots;
-
-    const ranges = [
-      [selectedOpeningDay.morning_open, selectedOpeningDay.morning_close],
-      [selectedOpeningDay.evening_open, selectedOpeningDay.evening_close],
-    ].filter(([start, end]) => start && end) as [string, string][];
-
-    for (const [start, end] of ranges) {
-      for (let minutes = timeToMinutes(start); minutes <= timeToMinutes(end); minutes += interval) {
-        slots.push(minutesToTime(minutes));
-      }
-    }
-    return [...new Set(slots)];
-  }, [selectedOpeningDay, settings.slot_interval_minutes]);
-
-  // Today and next days min/max dates
-  const minDate = formatLocalDate(new Date());
-  const maxDate = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + (settings.next_day_orders_allowed ? 7 : 0));
-    return formatLocalDate(d);
-  }, [settings.next_day_orders_allowed]);
-
-  React.useEffect(() => {
-    if (availableSlots.length > 0 && !availableSlots.includes(pickupTime)) {
-      setPickupTime(availableSlots[0]);
-    }
-  }, [availableSlots, pickupTime]);
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -141,14 +89,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       return;
     }
 
-    if (!selectedOpeningDay?.is_open || availableSlots.length === 0) {
-      alert('Il locale è chiuso nella data selezionata. Scegli un altro giorno.');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
+      // The shop accepts orders for the current day only. The time is kept
+      // internally for database compatibility, but is not exposed to customers.
+      const orderDate = formatLocalDate(new Date());
+      const orderTime = formatLocalTime(new Date());
+
       // Map cart items into OrderItem structure with snapshot
       const orderItems = items.map((ci) => ({
         id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -170,8 +118,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         delivery_address: deliveryAddress.trim() || undefined,
         delivery_latitude: deliveryCoordinates?.latitude,
         delivery_longitude: deliveryCoordinates?.longitude,
-        pickup_date: pickupDate,
-        pickup_time: pickupTime,
+        pickup_date: orderDate,
+        pickup_time: orderTime,
         notes: generalNotes.trim() || undefined,
         subtotal: total,
         total: total,
@@ -239,7 +187,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         </button>
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1C211E]">
-            Completa la Prenotazione
+            Completa il tuo ordine
           </h1>
           <p className="text-xs sm:text-sm text-[#55645A]">
             Nessuna registrazione necessaria. Il pagamento avviene online in modo sicuro con Stripe.
@@ -403,56 +351,17 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             )}
           </div>
 
-          {/* Pickup Date & Slot Section */}
+          {/* Same-day order information */}
           <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8DFD1] shadow-xs space-y-4">
             <h2 className="font-display text-lg font-bold text-[#1C211E] flex items-center gap-2 border-b border-[#F0EBE1] pb-3">
-              <Clock className="w-5 h-5 text-[#1B3B2B]" />
-              <span>{fulfillmentMethod === 'pickup' ? 'Quando vuoi ritirare?' : 'Quando vuoi ricevere?'}</span>
+              <Calendar className="w-5 h-5 text-[#1B3B2B]" />
+              <span>Ordine per oggi</span>
             </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Pickup Date */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#556B2F]" />
-                  <span>Data {fulfillmentMethod === 'pickup' ? 'Ritiro' : 'Consegna'} *</span>
-                </label>
-                <input
-                  type="date"
-                  required
-                  min={minDate}
-                  max={maxDate}
-                  value={pickupDate}
-                  onChange={(e) => setPickupDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#D8C3A5] text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3B2B] bg-[#FAF7F2]"
-                />
-              </div>
-
-              {/* Pickup Time Slot */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-[#556B2F]" />
-                  <span>Ora {fulfillmentMethod === 'pickup' ? 'Ritiro' : 'Consegna'} *</span>
-                </label>
-                <select
-                  required
-                  disabled={availableSlots.length === 0}
-                  value={pickupTime}
-                  onChange={(e) => setPickupTime(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#D8C3A5] text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3B2B] bg-[#FAF7F2]"
-                >
-                  {availableSlots.map((slot) => (
-                    <option key={slot} value={slot}>
-                      Ore {slot}
-                    </option>
-                  ))}
-                </select>
-                {availableSlots.length === 0 && (
-                  <p className="text-[11px] text-amber-700 font-medium">
-                    Il locale è chiuso nella data selezionata.
-                  </p>
-                )}
-              </div>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 space-y-1">
+              <p className="text-sm font-bold text-[#1B3B2B]">Prepariamo il tuo ordine nella giornata di oggi.</p>
+              <p className="text-xs text-[#55705D]">
+                Scegli se ritirarlo in negozio oppure riceverlo a domicilio. Ti contatteremo al numero indicato se avremo bisogno di conferme.
+              </p>
             </div>
 
             {/* General Notes */}
@@ -501,7 +410,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
             <div className="pt-3 border-t border-[#E8DFD1] space-y-2 text-sm">
               <div className="flex justify-between font-bold text-base text-[#1C211E]">
-                <span>Totale Da Saldare</span>
+                <span>Totale da pagare</span>
                 <span className="font-mono tabular-nums text-xl text-[#1B3B2B]">
                   €{total.toFixed(2).replace('.', ',')}
                 </span>
@@ -512,10 +421,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#E8DFD1] space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-[#1B3B2B] uppercase tracking-wider">
                 <CreditCard className="w-4 h-4 text-emerald-600" />
-                <span>Pagamento online con Stripe</span>
+                <span>Pagamento sicuro online</span>
               </div>
               <p className="text-xs text-[#55645A] leading-relaxed">
-                Dopo aver confermato verrai reindirizzato alla pagina sicura Stripe per pagare con carta o con i metodi disponibili. Vale sia per il ritiro in negozio sia per la consegna.
+                Dopo aver cliccato su “Paga” verrai reindirizzato alla pagina sicura Stripe. Il pagamento è richiesto subito, sia per il ritiro in negozio sia per la consegna.
               </p>
             </div>
 
@@ -528,7 +437,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               {isSubmitting ? (
                 <span>Avvio pagamento sicuro...</span>
               ) : (
-                <span>PAGA E CONFERMA CON STRIPE</span>
+                <span>Paga</span>
               )}
             </button>
           </div>

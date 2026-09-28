@@ -155,7 +155,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </span>
               </div>
               <div className="flex justify-between text-base font-bold text-[#1C211E] pt-1 border-t border-[#F0EBE1]">
-                <span>Totale da saldare al ritiro</span>
+                <span>Totale da pagare online</span>
                 <span className="font-mono tabular-nums text-lg text-[#1B3B2B]">
                   €{total.toFixed(2).replace('.', ',')}
                 </span>
@@ -169,7 +169,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               }}
               className="w-full py-3.5 px-4 bg-[#1B3B2B] hover:bg-[#28553E] text-[#FAF7F2] font-semibold text-sm rounded-xl shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2"
             >
-              <span>Continua con la prenotazione</span>
+              <span>Procedi all’ordine</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

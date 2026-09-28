@@ -184,7 +184,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                     </div>
 
                     <div className="text-xs text-[#55645A] flex flex-wrap items-center gap-2 mt-0.5">
-                      <span>Ritiro: <strong>Ore {order.pickup_time}</strong></span>
+                      <span><strong>Ordine per oggi</strong></span>
                       <span>·</span>
                       <span>{order.items.length} articoli</span>
                       <span>·</span>

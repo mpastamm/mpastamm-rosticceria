@@ -5,21 +5,6 @@ export function formatWhatsAppMessage(order: Order): string {
     .map((item) => `${item.quantity}x ${item.product_name_snapshot}${item.notes ? ` (${item.notes})` : ''}`)
     .join('\n');
 
-  // Format date nicely in Italian
-  let formattedDate = order.pickup_date;
-  try {
-    const d = new Date(order.pickup_date + 'T12:00:00');
-    formattedDate = d.toLocaleDateString('it-IT', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    });
-    // Capitalize first letter
-    formattedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
-  } catch {
-    // Keep as is
-  }
-
   const isDelivery = order.fulfillment_method === 'delivery';
   const deliveryMapsUrl = order.delivery_latitude != null && order.delivery_longitude != null
     ? `https://www.google.com/maps?q=${order.delivery_latitude},${order.delivery_longitude}`
@@ -32,7 +17,7 @@ export function formatWhatsAppMessage(order: Order): string {
     `*PRODOTTI*\n${itemsText}\n\n` +
     `*Totale:* €${order.total.toFixed(2).replace('.', ',')}\n\n` +
     `*Modalità:*\n${isDelivery ? 'Consegna a domicilio' : 'Ritiro in negozio'}\n` +
-    `${isDelivery ? '*Consegna:*' : '*Ritiro:*'}\n${formattedDate}\nOre ${order.pickup_time}`;
+    `${isDelivery ? '*Consegna:*' : '*Ritiro:*'}\nOggi`;
 
   if (isDelivery) {
     text += `\n\n*Indirizzo consegna:*\n${order.delivery_address?.trim() || 'Non indicato'}`;

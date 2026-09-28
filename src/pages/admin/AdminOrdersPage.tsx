@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   ShoppingBag,
   Phone,
-  Clock,
   Calendar,
   Filter,
   Check,
@@ -196,10 +195,7 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-[#55645A] mt-1">
                         <span className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5 text-[#8A9A86]" /> {order.pickup_date}
-                        </span>
-                        <span className="flex items-center gap-1 font-bold text-[#1C211E]">
-                          <Clock className="w-3.5 h-3.5 text-[#1B3B2B]" /> Ore {order.pickup_time}
+                          <Calendar className="w-3.5 h-3.5 text-[#8A9A86]" /> Oggi
                         </span>
                         <span>·</span>
                         <span className="inline-flex items-center gap-1 font-semibold text-[#1B3B2B]">
@@ -229,7 +225,7 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
                     <a
                       href={generateDirectWhatsAppUrl(
                         order.customer_phone,
-                        `Ciao ${order.customer_name}, ti contattiamo da 'Mpastamm per il tuo ordine ${order.order_number} previsto per le ore ${order.pickup_time}.`
+                        `Ciao ${order.customer_name}, ti contattiamo da 'Mpastamm per il tuo ordine ${order.order_number} previsto per oggi.`
                       )}
                       target="_blank"
                       rel="noopener noreferrer"

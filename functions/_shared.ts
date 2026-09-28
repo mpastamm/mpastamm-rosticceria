@@ -128,13 +128,6 @@ export function formatOrderMessage(order: any, items: any[]): string {
   const itemsText = items
     .map((item) => `${item.quantity}x ${item.product_name_snapshot}${item.notes ? ` (${item.notes})` : ''}`)
     .join('\n');
-  let formattedDate = String(order.pickup_date || '');
-  try {
-    const date = new Date(`${order.pickup_date}T12:00:00`);
-    formattedDate = date.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
-    formattedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
-  } catch {}
-
   const isDelivery = order.fulfillment_method === 'delivery';
   const mapsUrl = order.delivery_latitude != null && order.delivery_longitude != null
     ? `https://www.google.com/maps?q=${order.delivery_latitude},${order.delivery_longitude}`
@@ -147,7 +140,7 @@ export function formatOrderMessage(order: any, items: any[]): string {
     `*PRODOTTI*\n${itemsText}\n\n` +
     `*Totale pagato:* €${Number(order.total || 0).toFixed(2).replace('.', ',')}\n\n` +
     `*Modalità:*\n${isDelivery ? 'Consegna a domicilio' : 'Ritiro in negozio'}\n` +
-    `${isDelivery ? '*Consegna:*' : '*Ritiro:*'}\n${formattedDate}\nOre ${order.pickup_time}`;
+    `${isDelivery ? '*Consegna:*' : '*Ritiro:*'}\nOggi`;
   if (isDelivery) {
     message += `\n\n*Indirizzo consegna:*\n${order.delivery_address || 'Non indicato'}`;
     if (mapsUrl) message += `\n*Posizione GPS:*\n${mapsUrl}`;

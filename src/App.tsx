@@ -462,7 +462,6 @@ export default function App() {
           <CheckoutPage
             items={cartItems}
             settings={settings}
-            openingHours={openingHours}
             onOrderCompleted={(order) => {
               setLastPlacedOrder(order);
             }}

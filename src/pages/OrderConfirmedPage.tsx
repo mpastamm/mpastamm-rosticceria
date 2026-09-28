@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, MessageSquare, Calendar, Clock, ArrowRight, Share2, Printer, Store, Truck, ExternalLink, CreditCard, Loader2 } from 'lucide-react';
+import { CheckCircle2, MessageSquare, Calendar, ArrowRight, Share2, Printer, Store, Truck, ExternalLink, CreditCard, Loader2 } from 'lucide-react';
 import { Order, BusinessSettings, PaymentStatus } from '../types';
 import { generateDirectWhatsAppUrl, formatWhatsAppMessage } from '../services/whatsapp';
 import { StorageService } from '../services/storage';
@@ -69,18 +69,6 @@ export const OrderConfirmedPage: React.FC<OrderConfirmedPageProps> = ({
     );
   }
 
-  // Format date in Italian
-  let formattedDate = order.pickup_date;
-  try {
-    const d = new Date(order.pickup_date + 'T12:00:00');
-    formattedDate = d.toLocaleDateString('it-IT', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    });
-    formattedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
-  } catch {}
-
   const whatsappMessage = formatWhatsAppMessage(order);
   const whatsappUrl = generateDirectWhatsAppUrl(
     settings.whatsapp_notification_phone || '393331234567',
@@ -115,18 +103,18 @@ export const OrderConfirmedPage: React.FC<OrderConfirmedPageProps> = ({
 
       {/* Main Order Receipt Card */}
       <div className="bg-white rounded-3xl border border-[#E8DFD1] shadow-md p-6 sm:p-8 space-y-6">
-        {/* Pickup Time Banner */}
+        {/* Same-day order banner */}
         <div className="bg-[#FAF7F2] p-4 sm:p-5 rounded-2xl border border-[#E8DFD1] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-[#1B3B2B] text-white flex items-center justify-center shrink-0">
-              {isDelivery ? <Truck className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
+              {isDelivery ? <Truck className="w-6 h-6" /> : <Calendar className="w-6 h-6" />}
             </div>
             <div>
               <span className="text-[11px] uppercase tracking-wider text-[#7A8A7E] font-bold block">
-                {isDelivery ? 'Orario di Consegna Previsto' : 'Orario di Ritiro Previsto'}
+                {isDelivery ? 'Consegna' : 'Ritiro in negozio'}
               </span>
               <span className="font-display font-bold text-lg sm:text-xl text-[#1C211E]">
-                {formattedDate}, Ore {order.pickup_time}
+                Ordine per oggi
               </span>
             </div>
           </div>
