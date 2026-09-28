@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, FolderTree } from 'lucide-react';
 import { Category, Product } from '../../types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ImageUploader } from '../../components/admin/ImageUploader';
+import { ASSET_IMAGES } from '../../services/imageMap';
 
 interface AdminCategoriesPageProps {
   categories: Category[];
@@ -21,6 +23,8 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [catName, setCatName] = useState('');
+  const [catDescription, setCatDescription] = useState('');
+  const [catImageUrl, setCatImageUrl] = useState(ASSET_IMAGES.hero);
   const [catVisible, setCatVisible] = useState(true);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
 
@@ -33,6 +37,8 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
   const handleOpenEdit = (cat: Category) => {
     setEditingCategory(cat);
     setCatName(cat.name);
+    setCatDescription(cat.description || '');
+    setCatImageUrl(cat.image_url || ASSET_IMAGES.hero);
     setCatVisible(cat.visible);
     setIsCreatingNew(false);
   };
@@ -40,6 +46,8 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
   const handleOpenNew = () => {
     setEditingCategory(null);
     setCatName('');
+    setCatDescription('');
+    setCatImageUrl(ASSET_IMAGES.hero);
     setCatVisible(true);
     setIsCreatingNew(true);
   };
@@ -59,12 +67,17 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
       id: editingCategory?.id,
       name: catName.trim(),
       slug: slug || `cat-${Date.now()}`,
+      description: catDescription.trim(),
+      image_url: catImageUrl,
       visible: catVisible,
+      display_order: editingCategory?.display_order ?? categories.length + 1,
     });
 
     setEditingCategory(null);
     setIsCreatingNew(false);
     setCatName('');
+    setCatDescription('');
+    setCatImageUrl(ASSET_IMAGES.hero);
   };
 
   return (
@@ -85,7 +98,7 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
           className="px-4 py-2.5 bg-[#1B3B2B] hover:bg-[#28553E] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-2 self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>Nuova Categoria</span>
+            <span>Nuova Card</span>
         </button>
       </div>
 
@@ -93,14 +106,14 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
       {(isCreatingNew || editingCategory) && (
         <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-2xl border border-[#D8C3A5] shadow-xs space-y-4 animate-fadeIn">
           <h3 className="font-display font-bold text-base text-[#1C211E]">
-            {isCreatingNew ? 'Crea Nuova Categoria' : `Modifica Categoria "${editingCategory?.name}"`}
+            {isCreatingNew ? 'Crea Nuova Card' : `Modifica Card "${editingCategory?.name}"`}
           </h3>
 
           <form onSubmit={handleSave} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-              <div className="sm:col-span-2 space-y-1">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-5">
+              <div className="space-y-3">
                 <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider">
-                  Nome Categoria *
+                  Nome Card *
                 </label>
                 <input
                   type="text"
@@ -110,37 +123,56 @@ export const AdminCategoriesPage: React.FC<AdminCategoriesPageProps> = ({
                   placeholder="Es. Pizze al Taglio, Bevande..."
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#D8C3A5] text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1B3B2B]"
                 />
+                <textarea
+                  rows={3}
+                  value={catDescription}
+                  onChange={(e) => setCatDescription(e.target.value)}
+                  placeholder="Descrizione breve mostrata sulla card"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#D8C3A5] text-sm bg-white resize-y focus:outline-none focus:ring-2 focus:ring-[#1B3B2B]"
+                />
               </div>
 
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={catVisible}
-                    onChange={(e) => setCatVisible(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#1B3B2B] focus:ring-[#1B3B2B]"
-                  />
-                  <span className="text-xs font-bold text-[#1C211E]">Visibile</span>
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider">
+                  Immagine della card
                 </label>
+                <ImageUploader
+                  value={catImageUrl}
+                  onChange={setCatImageUrl}
+                  aspectRatio="16/9"
+                  mode="site"
+                />
+              </div>
+            </div>
 
-                <div className="flex items-center gap-2 ml-auto">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingCategory(null);
-                      setIsCreatingNew(false);
-                    }}
-                    className="px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-200 rounded-lg"
-                  >
-                    Annulla
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-[#1B3B2B] text-white text-xs font-bold rounded-lg shadow-xs"
-                  >
-                    Salva
-                  </button>
-                </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E8DFD1] pt-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={catVisible}
+                  onChange={(e) => setCatVisible(e.target.checked)}
+                  className="w-4 h-4 rounded text-[#1B3B2B] focus:ring-[#1B3B2B]"
+                />
+                <span className="text-xs font-bold text-[#1C211E]">Visibile nella vetrina</span>
+              </label>
+
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingCategory(null);
+                    setIsCreatingNew(false);
+                  }}
+                  className="px-3 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-200 rounded-lg"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#1B3B2B] text-white text-xs font-bold rounded-lg shadow-xs"
+                >
+                  Salva card
+                </button>
               </div>
             </div>
           </form>
