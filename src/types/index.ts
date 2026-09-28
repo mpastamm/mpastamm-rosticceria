@@ -42,6 +42,8 @@ export type OrderStatus =
   | 'RITIRATO'
   | 'ANNULLATO';
 
+export type FulfillmentMethod = 'pickup' | 'delivery';
+
 export interface OrderItem {
   id: string;
   order_id?: string;
@@ -60,6 +62,10 @@ export interface Order {
   customer_name: string;
   customer_surname: string;
   customer_phone: string;
+  fulfillment_method?: FulfillmentMethod;
+  delivery_address?: string;
+  delivery_latitude?: number;
+  delivery_longitude?: number;
   pickup_date: string; // YYYY-MM-DD
   pickup_time: string; // HH:MM
   notes?: string;
@@ -71,6 +77,47 @@ export interface Order {
   updated_at: string;
 }
 
+export interface SiteContent {
+  logo_image_url?: string;
+  about_eyebrow: string;
+  about_title: string;
+  about_description: string;
+  about_image_url: string;
+  about_image_alt: string;
+  about_feature_1_title: string;
+  about_feature_1_description: string;
+  about_feature_2_title: string;
+  about_feature_2_description: string;
+  about_feature_3_title: string;
+  about_feature_3_description: string;
+  about_cta_label: string;
+  catering_eyebrow: string;
+  catering_title: string;
+  catering_description: string;
+  catering_image_url: string;
+  catering_image_alt: string;
+  catering_feature_1_title: string;
+  catering_feature_1_description: string;
+  catering_feature_2_title: string;
+  catering_feature_2_description: string;
+  catering_feature_3_title: string;
+  catering_feature_3_description: string;
+  catering_action_title: string;
+  catering_action_description: string;
+  catering_whatsapp_label: string;
+  location_eyebrow: string;
+  location_title: string;
+  location_description: string;
+  location_image_url: string;
+  location_image_alt: string;
+  location_contact_title: string;
+  location_hours_title: string;
+  location_hours_note: string;
+  location_map_button_label: string;
+  footer_quality_title: string;
+  footer_quality_text: string;
+}
+
 export interface BusinessSettings {
   id: string;
   store_name: string;
@@ -80,6 +127,7 @@ export interface BusinessSettings {
   hero_image_url?: string;
   hero_image_alt?: string;
   footer_claim?: string;
+  site_content?: SiteContent;
   address: string;
   city: string;
   phone: string;

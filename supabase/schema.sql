@@ -46,6 +46,10 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_name TEXT NOT NULL,
   customer_surname TEXT,
   customer_phone TEXT NOT NULL,
+  fulfillment_method TEXT NOT NULL DEFAULT 'pickup' CHECK (fulfillment_method IN ('pickup', 'delivery')),
+  delivery_address TEXT,
+  delivery_latitude NUMERIC(10, 7),
+  delivery_longitude NUMERIC(10, 7),
   pickup_date DATE NOT NULL,
   pickup_time TIME NOT NULL,
   notes TEXT,
@@ -55,6 +59,11 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS fulfillment_method TEXT NOT NULL DEFAULT 'pickup';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_latitude NUMERIC(10, 7);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_longitude NUMERIC(10, 7);
 
 -- 4. TABELLA VOCI ORDINE (SNAPSHOT PRODOTTO)
 CREATE TABLE IF NOT EXISTS order_items (
@@ -79,6 +88,7 @@ CREATE TABLE IF NOT EXISTS business_settings (
   hero_image_url TEXT,
   hero_image_alt TEXT DEFAULT 'Mpastamm Rosticceria Interno e Vetrina',
   footer_claim TEXT DEFAULT 'Nun è fame, è voglia e sfizio.',
+  site_content JSONB DEFAULT '{}'::jsonb,
   address TEXT DEFAULT 'Via Roma, 42',
   city TEXT DEFAULT 'Napoli (NA)',
   phone TEXT DEFAULT '081 123 4567',
@@ -102,6 +112,7 @@ ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_description TEXT DEF
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_image_url TEXT;
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS hero_image_alt TEXT DEFAULT 'Mpastamm Rosticceria Interno e Vetrina';
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS footer_claim TEXT DEFAULT 'Nun è fame, è voglia e sfizio.';
+ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS site_content JSONB DEFAULT '{}'::jsonb;
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS instagram_url TEXT DEFAULT 'https://instagram.com/mpastamm.rosticceria';
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS facebook_url TEXT;
 ALTER TABLE business_settings ADD COLUMN IF NOT EXISTS tiktok_url TEXT;

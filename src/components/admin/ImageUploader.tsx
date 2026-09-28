@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Upload, X, RefreshCw, Eye, Sparkles } from 'lucide-react';
 import { ASSET_IMAGES } from '../../services/imageMap';
 import { isSupabaseConfigured } from '../../services/supabaseClient';
-import { uploadProductImage } from '../../services/supabaseStore';
+import { uploadProductImage, uploadSiteImage } from '../../services/supabaseStore';
 
 interface ImageUploaderProps {
   value: string;
@@ -61,7 +61,9 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
           canvas.toBlob(async (blob) => {
             try {
-              const remoteUrl = isSupabaseConfigured && blob ? await uploadProductImage(blob) : null;
+              const remoteUrl = isSupabaseConfigured && blob
+                ? await (mode === 'site' ? uploadSiteImage(blob) : uploadProductImage(blob))
+                : null;
               onChange(remoteUrl || compressedDataUrl);
             } catch {
               setError('Impossibile salvare la foto nello storage remoto');

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, MessageSquare, Calendar, Clock, MapPin, ArrowRight, Share2, Printer } from 'lucide-react';
+import { CheckCircle2, MessageSquare, Calendar, Clock, ArrowRight, Share2, Printer, Store, Truck, ExternalLink } from 'lucide-react';
 import { Order, BusinessSettings } from '../types';
 import { generateDirectWhatsAppUrl, formatWhatsAppMessage } from '../services/whatsapp';
 
@@ -48,6 +48,10 @@ export const OrderConfirmedPage: React.FC<OrderConfirmedPageProps> = ({
     settings.whatsapp_notification_phone || '393331234567',
     whatsappMessage
   );
+  const isDelivery = order.fulfillment_method === 'delivery';
+  const deliveryMapsUrl = order.delivery_latitude != null && order.delivery_longitude != null
+    ? `https://www.google.com/maps?q=${order.delivery_latitude},${order.delivery_longitude}`
+    : '';
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6 animate-fadeIn">
@@ -76,11 +80,11 @@ export const OrderConfirmedPage: React.FC<OrderConfirmedPageProps> = ({
         <div className="bg-[#FAF7F2] p-4 sm:p-5 rounded-2xl border border-[#E8DFD1] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-[#1B3B2B] text-white flex items-center justify-center shrink-0">
-              <Clock className="w-6 h-6" />
+              {isDelivery ? <Truck className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
             </div>
             <div>
               <span className="text-[11px] uppercase tracking-wider text-[#7A8A7E] font-bold block">
-                Orario di Ritiro Previsto
+                {isDelivery ? 'Orario di Consegna Previsto' : 'Orario di Ritiro Previsto'}
               </span>
               <span className="font-display font-bold text-lg sm:text-xl text-[#1C211E]">
                 {formattedDate}, Ore {order.pickup_time}
@@ -134,26 +138,39 @@ export const OrderConfirmedPage: React.FC<OrderConfirmedPageProps> = ({
         {/* Total & Payment Method */}
         <div className="pt-4 border-t border-[#E8DFD1] space-y-2">
           <div className="flex justify-between items-baseline font-bold text-lg text-[#1C211E]">
-            <span>Totale da saldare al banco</span>
+            <span>Totale da saldare {isDelivery ? 'alla consegna' : 'al banco'}</span>
             <span className="font-mono tabular-nums text-2xl text-[#1B3B2B]">
               €{order.total.toFixed(2).replace('.', ',')}
             </span>
           </div>
           <p className="text-xs text-[#7A8A7E]">
-            Modalità: <strong>Pagamento al ritiro</strong> (Contanti o Carta)
+            Modalità: <strong>Pagamento {isDelivery ? 'alla consegna' : 'al ritiro'}</strong> (Contanti o Carta)
           </p>
         </div>
 
         {/* Location & Contact Notice */}
         <div className="p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl flex items-start gap-3 text-xs text-emerald-900">
-          <MapPin className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+          {isDelivery ? <Truck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" /> : <Store className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />}
           <div>
-            <p className="font-bold">Dove ritirare il tuo ordine:</p>
+            <p className="font-bold">{isDelivery ? 'Dove consegneremo il tuo ordine:' : 'Dove ritirare il tuo ordine:'}</p>
             <p className="mt-0.5">
-              Rosticceria 'Mpastamm — {settings.address}, {settings.city}
+              {isDelivery
+                ? (order.delivery_address || 'Posizione condivisa tramite GPS')
+                : `Rosticceria 'Mpastamm — ${settings.address}, ${settings.city}`}
             </p>
+            {isDelivery && deliveryMapsUrl && (
+              <a
+                href={deliveryMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 mt-1 font-semibold text-emerald-800 hover:underline"
+              >
+                <ExternalLink className="w-3.5 h-3.5" /> Apri posizione sulla mappa
+              </a>
+            )}
             <p className="text-emerald-800 mt-1">
-              Mostra questo numero ordine al banco caldo: <strong>{order.order_number}</strong>
+              {isDelivery ? 'Tieni a portata di mano questo numero ordine: ' : 'Mostra questo numero ordine al banco caldo: '}
+              <strong>{order.order_number}</strong>
             </p>
           </div>
         </div>

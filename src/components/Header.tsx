@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShoppingBag, Search, User, Menu, X } from 'lucide-react';
 import { BusinessSettings } from '../types';
 import mpastammLogo from '../assets/images/mpastamm_logo_white.png';
+import { INITIAL_SITE_CONTENT } from '../services/storage';
 
 interface HeaderProps {
   cartCount: number;
@@ -20,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   settings,
   onSearch,
 }) => {
+  const content = { ...INITIAL_SITE_CONTENT, ...(settings.site_content || {}) };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchVal, setSearchVal] = useState('');
 
@@ -65,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="Mpastamm - officina dei lievitati"
           >
             <img
-              src={mpastammLogo}
+              src={content.logo_image_url || mpastammLogo}
               alt="Mpastamm - officina dei lievitati"
               className="block w-[7.8rem] sm:w-[9.2rem] h-auto object-contain transition-opacity group-hover:opacity-80"
             />

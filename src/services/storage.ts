@@ -1,4 +1,4 @@
-import { Category, Product, Order, BusinessSettings, OpeningHourDay } from '../types';
+import { Category, Product, Order, BusinessSettings, OpeningHourDay, SiteContent } from '../types';
 import { ASSET_IMAGES, getProductFallbackImage } from './imageMap';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import {
@@ -65,6 +65,47 @@ export const INITIAL_CATEGORIES: Category[] = [
     visible: true,
   },
 ];
+
+export const INITIAL_SITE_CONTENT: SiteContent = {
+  logo_image_url: '',
+  about_eyebrow: 'La nostra storia',
+  about_title: 'Chi Siamo',
+  about_description: "'Mpastamm nasce dal desiderio di portare nel cuore della città i profumi veri della rosticceria e del forno tradizionale campano.",
+  about_image_url: ASSET_IMAGES.hero,
+  about_image_alt: "'Mpastamm Locale",
+  about_feature_1_title: 'Lievitazione Lenta',
+  about_feature_1_description: 'Oltre 24 ore di maturazione a temperatura controllata per un impasto leggero, profumato e altamente digeribile.',
+  about_feature_2_title: 'Ingredienti Selezionati',
+  about_feature_2_description: 'Mozzarella e provola affumicata dei monti Lattari, pomodoro San Marzano e farine italiane macinate a pietra.',
+  about_feature_3_title: 'Passione Quotidiana',
+  about_feature_3_description: '"Nun c\'è fame, è voglia e sfizio": ogni nostra preparazione è pensata per regalare un momento di autentica gioia.',
+  about_cta_label: 'Scopri La Vetrina di Oggi',
+  catering_eyebrow: 'Eventi & Feste',
+  catering_title: "Catering 'Mpastamm",
+  catering_description: "Porta l'eccellenza della rosticceria napoletana alle tue feste di compleanno, lauree, cene aziendali ed eventi privati.",
+  catering_image_url: ASSET_IMAGES.saltimbocca,
+  catering_image_alt: 'Catering Mpastamm per feste ed eventi',
+  catering_feature_1_title: 'Feste & Compleanni',
+  catering_feature_1_description: 'Vassoi assortiti di mini saltimbocca caldi, bun soffici farciti, trancetti di rutiello e mix di friggitoria dorata.',
+  catering_feature_2_title: 'Eventi Aziendali',
+  catering_feature_2_description: 'Pausa pranzo o aperitivo di lavoro con confezioni curate e riscaldatori termici inclusi su richiesta per mantenere tutto croccante.',
+  catering_feature_3_title: 'Personalizzazione Menu',
+  catering_feature_3_description: 'Possibilità di concordare farciture speciali, alternative vegetariane e orari di consegna dedicati.',
+  catering_action_title: 'Vuoi organizzare il tuo catering?',
+  catering_action_description: 'Scrivici direttamente su WhatsApp o chiamaci per un preventivo personalizzato rapido.',
+  catering_whatsapp_label: 'Preventivo WhatsApp',
+  location_eyebrow: 'Vieni a Trovarci',
+  location_title: 'Dove Siamo & Orari',
+  location_description: "Il laboratorio di 'Mpastamm ti aspetta per il ritiro dei tuoi ordini caldi appena sfornati.",
+  location_image_url: ASSET_IMAGES.hero,
+  location_image_alt: "Interno del laboratorio 'Mpastamm",
+  location_contact_title: "Rosticceria 'Mpastamm",
+  location_hours_title: 'Orari di Apertura Banco',
+  location_hours_note: 'I prodotti caldi da forno e friggitoria vengono preparati in base alle fasce di prenotazione per garantire la massima freschezza e croccantezza.',
+  location_map_button_label: 'Apri indicazioni stradali su Google Maps',
+  footer_quality_title: 'Ingredienti di qualità',
+  footer_quality_text: 'Tradizione napoletana',
+};
 
 // Initial Products as requested by user prompt
 export const INITIAL_PRODUCTS: Product[] = [
@@ -428,6 +469,7 @@ export const INITIAL_SETTINGS: BusinessSettings = {
   hero_image_url: ASSET_IMAGES.hero,
   hero_image_alt: 'Mpastamm Rosticceria Interno e Vetrina',
   footer_claim: 'Nun è fame, è voglia e sfizio.',
+  site_content: INITIAL_SITE_CONTENT,
   address: 'Via Roma, 42',
   city: 'Napoli (NA)',
   phone: '081 123 4567',
@@ -632,7 +674,11 @@ export class StorageService {
       localStorage.setItem(KEYS.ORDERS, JSON.stringify(snapshot.orders));
     }
     if (snapshot.settings) {
-      localStorage.setItem(KEYS.SETTINGS, JSON.stringify(snapshot.settings));
+      localStorage.setItem(KEYS.SETTINGS, JSON.stringify({
+        ...INITIAL_SETTINGS,
+        ...snapshot.settings,
+        site_content: { ...INITIAL_SITE_CONTENT, ...(snapshot.settings.site_content || {}) },
+      }));
     }
     if (snapshot.openingHours.length > 0) {
       localStorage.setItem(KEYS.OPENING_HOURS, JSON.stringify(snapshot.openingHours));
@@ -879,16 +925,26 @@ export class StorageService {
       return INITIAL_SETTINGS;
     }
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw) as BusinessSettings;
+      return {
+        ...INITIAL_SETTINGS,
+        ...parsed,
+        site_content: { ...INITIAL_SITE_CONTENT, ...(parsed.site_content || {}) },
+      };
     } catch {
       return INITIAL_SETTINGS;
     }
   }
 
   static saveSettings(settings: BusinessSettings): void {
-    localStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings));
+    const normalizedSettings: BusinessSettings = {
+      ...INITIAL_SETTINGS,
+      ...settings,
+      site_content: { ...INITIAL_SITE_CONTENT, ...(settings.site_content || {}) },
+    };
+    localStorage.setItem(KEYS.SETTINGS, JSON.stringify(normalizedSettings));
     emitUpdate();
-    void syncSettings(settings).catch(reportRemoteSyncError);
+    void syncSettings(normalizedSettings).catch(reportRemoteSyncError);
   }
 
   static getOpeningHours(): OpeningHourDay[] {

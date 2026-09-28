@@ -3,6 +3,7 @@ import { MapPin, Clock, Sparkles, Instagram, Facebook, Music2, ShieldCheck } fro
 import { BusinessSettings, OpeningHourDay } from '../types';
 import mpastammLogo from '../assets/images/mpastamm_logo_white.png';
 import { getSocialUrl } from '../utils/socialLinks';
+import { INITIAL_SITE_CONTENT } from '../services/storage';
 
 interface FooterProps {
   settings: BusinessSettings;
@@ -11,6 +12,7 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ settings, openingHours, onNavigate }) => {
+  const content = { ...INITIAL_SITE_CONTENT, ...(settings.site_content || {}) };
   const instagramUrl = getSocialUrl('instagram', settings.instagram_url || settings.instagram_handle);
   const facebookUrl = getSocialUrl('facebook', settings.facebook_url);
   const tiktokUrl = getSocialUrl('tiktok', settings.tiktok_url);
@@ -39,8 +41,8 @@ export const Footer: React.FC<FooterProps> = ({ settings, openingHours, onNaviga
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           {/* Left: Brand Logo */}
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left shrink-0">
-            <img
-              src={mpastammLogo}
+              <img
+              src={content.logo_image_url || mpastammLogo}
               alt="Mpastamm - officina dei lievitati"
               className="block w-36 sm:w-44 h-auto object-contain"
             />
@@ -76,8 +78,8 @@ export const Footer: React.FC<FooterProps> = ({ settings, openingHours, onNaviga
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#C2B79E] shrink-0" />
               <div className="text-left">
-                <span className="block font-medium leading-tight">Ingredienti di qualità</span>
-                <span className="text-[11px] text-[#A69E8F] leading-tight">Tradizione napoletana</span>
+                <span className="block font-medium leading-tight">{content.footer_quality_title}</span>
+                <span className="text-[11px] text-[#A69E8F] leading-tight">{content.footer_quality_text}</span>
               </div>
             </div>
 

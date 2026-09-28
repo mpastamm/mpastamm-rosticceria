@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Clock, Calendar, Phone, User, FileText, CheckCircle2, ShieldAlert } from 'lucide-react';
-import { CartItem, Order, BusinessSettings, OpeningHourDay } from '../types';
+import { ArrowLeft, Clock, Calendar, Phone, User, FileText, CheckCircle2, ShieldAlert, MapPin, Store, Truck, Navigation } from 'lucide-react';
+import { CartItem, Order, BusinessSettings, OpeningHourDay, FulfillmentMethod } from '../types';
 import { StorageService } from '../services/storage';
 import { sendOrderNotificationToBackend } from '../services/whatsapp';
 
@@ -40,6 +40,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [phone, setPhone] = useState('');
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<FulfillmentMethod>('pickup');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryCoordinates, setDeliveryCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState('');
   const [pickupDate, setPickupDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -47,7 +52,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [pickupTime, setPickupTime] = useState('19:30');
   const [generalNotes, setGeneralNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; phone?: string; deliveryAddress?: string }>({});
 
   const total = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
 
@@ -89,15 +94,42 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     }
   }, [availableSlots, pickupTime]);
 
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('La geolocalizzazione non è supportata da questo dispositivo. Inserisci l’indirizzo manualmente.');
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationError('');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setDeliveryCoordinates({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        setIsLocating(false);
+      },
+      () => {
+        setLocationError('Non è stato possibile ottenere la posizione. Consenti l’accesso oppure inserisci l’indirizzo manualmente.');
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
+
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
-    const newErrors: { name?: string; phone?: string } = {};
-    if (!name.trim()) newErrors.name = 'Il nome è obbligatorio per il ritiro';
+    const newErrors: { name?: string; phone?: string; deliveryAddress?: string } = {};
+    if (!name.trim()) newErrors.name = 'Il nome è obbligatorio per l’ordine';
     if (!phone.trim()) newErrors.phone = 'Il numero di telefono è obbligatorio';
     else if (phone.replace(/[^0-9]/g, '').length < 8) {
       newErrors.phone = 'Inserisci un recapito telefonico valido';
+    }
+    if (fulfillmentMethod === 'delivery' && !deliveryAddress.trim() && !deliveryCoordinates) {
+      newErrors.deliveryAddress = 'Inserisci l’indirizzo oppure usa il pulsante per condividere la posizione.';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -135,6 +167,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         customer_name: name.trim(),
         customer_surname: surname.trim(),
         customer_phone: phone.trim(),
+        fulfillment_method: fulfillmentMethod,
+        delivery_address: deliveryAddress.trim() || undefined,
+        delivery_latitude: deliveryCoordinates?.latitude,
+        delivery_longitude: deliveryCoordinates?.longitude,
         pickup_date: pickupDate,
         pickup_time: pickupTime,
         notes: generalNotes.trim() || undefined,
@@ -191,7 +227,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             Completa la Prenotazione
           </h1>
           <p className="text-xs sm:text-sm text-[#55645A]">
-            Nessuna registrazione necessaria. Pagherai al momento del ritiro al banco.
+            Nessuna registrazione necessaria. Pagherai {fulfillmentMethod === 'pickup' ? 'al ritiro in negozio' : 'alla consegna'}.
           </p>
         </div>
       </div>
@@ -203,7 +239,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8DFD1] shadow-xs space-y-4">
             <h2 className="font-display text-lg font-bold text-[#1C211E] flex items-center gap-2 border-b border-[#F0EBE1] pb-3">
               <User className="w-5 h-5 text-[#1B3B2B]" />
-              <span>Dati per il Ritiro</span>
+              <span>Dati del Cliente</span>
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -269,11 +305,94 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </div>
           </div>
 
+          {/* Fulfillment Method Section */}
+          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8DFD1] shadow-xs space-y-4">
+            <h2 className="font-display text-lg font-bold text-[#1C211E] flex items-center gap-2 border-b border-[#F0EBE1] pb-3">
+              {fulfillmentMethod === 'pickup' ? (
+                <Store className="w-5 h-5 text-[#1B3B2B]" />
+              ) : (
+                <Truck className="w-5 h-5 text-[#1B3B2B]" />
+              )}
+              <span>Come vuoi ricevere l’ordine?</span>
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setFulfillmentMethod('pickup')}
+                className={`p-4 rounded-xl border text-left transition-all ${
+                  fulfillmentMethod === 'pickup'
+                    ? 'border-[#1B3B2B] bg-[#EEF4EA] ring-2 ring-[#1B3B2B]/15'
+                    : 'border-[#D8C3A5] bg-[#FAF7F2] hover:border-[#1B3B2B]'
+                }`}
+              >
+                <span className="flex items-center gap-2 text-sm font-bold text-[#1C211E]"><Store className="w-4 h-4 text-[#1B3B2B]" /> Ritiro in negozio</span>
+                <span className="block text-xs text-[#7A8A7E] mt-1">Passa da noi e paga al banco.</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFulfillmentMethod('delivery')}
+                className={`p-4 rounded-xl border text-left transition-all ${
+                  fulfillmentMethod === 'delivery'
+                    ? 'border-[#1B3B2B] bg-[#EEF4EA] ring-2 ring-[#1B3B2B]/15'
+                    : 'border-[#D8C3A5] bg-[#FAF7F2] hover:border-[#1B3B2B]'
+                }`}
+              >
+                <span className="flex items-center gap-2 text-sm font-bold text-[#1C211E]"><Truck className="w-4 h-4 text-[#1B3B2B]" /> Consegna a domicilio</span>
+                <span className="block text-xs text-[#7A8A7E] mt-1">Indica dove vuoi ricevere l’ordine.</span>
+              </button>
+            </div>
+
+            {fulfillmentMethod === 'delivery' && (
+              <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 animate-fadeIn">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#556B2F]" />
+                    Indirizzo di consegna oppure posizione attuale
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={deliveryAddress}
+                    onChange={(event) => {
+                      setDeliveryAddress(event.target.value);
+                      if (errors.deliveryAddress) setErrors({ ...errors, deliveryAddress: undefined });
+                    }}
+                    placeholder="Via, numero civico, scala/interno, citofono"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1B3B2B] ${
+                      errors.deliveryAddress ? 'border-red-500 ring-1 ring-red-500' : 'border-[#D8C3A5]'
+                    }`}
+                  />
+                  {errors.deliveryAddress && <p className="text-[11px] text-red-600 font-medium">{errors.deliveryAddress}</p>}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  disabled={isLocating}
+                  className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#1B3B2B] hover:bg-[#28553E] disabled:opacity-60 text-white text-xs font-bold transition-colors"
+                >
+                  <Navigation className="w-4 h-4" />
+                  {isLocating ? 'Rilevamento posizione…' : 'Usa la mia posizione attuale'}
+                </button>
+
+                {deliveryCoordinates && (
+                  <p className="text-xs text-emerald-800 font-medium">
+                    Posizione rilevata e allegata all’ordine: {deliveryCoordinates.latitude.toFixed(6)}, {deliveryCoordinates.longitude.toFixed(6)}
+                  </p>
+                )}
+                {locationError && <p className="text-[11px] text-amber-800 font-medium">{locationError}</p>}
+                <p className="text-[11px] text-[#55705D]">
+                  La posizione viene usata solo per comunicare il punto di consegna alla rosticceria tramite l’ordine.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Pickup Date & Slot Section */}
           <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8DFD1] shadow-xs space-y-4">
             <h2 className="font-display text-lg font-bold text-[#1C211E] flex items-center gap-2 border-b border-[#F0EBE1] pb-3">
               <Clock className="w-5 h-5 text-[#1B3B2B]" />
-              <span>Quando vuoi ritirare?</span>
+              <span>{fulfillmentMethod === 'pickup' ? 'Quando vuoi ritirare?' : 'Quando vuoi ricevere?'}</span>
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -281,7 +400,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <div className="space-y-1">
                 <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[#556B2F]" />
-                  <span>Data Ritiro *</span>
+                  <span>Data {fulfillmentMethod === 'pickup' ? 'Ritiro' : 'Consegna'} *</span>
                 </label>
                 <input
                   type="date"
@@ -298,7 +417,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <div className="space-y-1">
                 <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-[#556B2F]" />
-                  <span>Ora Ritiro *</span>
+                  <span>Ora {fulfillmentMethod === 'pickup' ? 'Ritiro' : 'Consegna'} *</span>
                 </label>
                 <select
                   required
@@ -374,14 +493,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               </div>
             </div>
 
-            {/* Payment at Pickup Trust Badge (Section 10) */}
+            {/* Payment at Pickup / Delivery Trust Badge */}
             <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#E8DFD1] space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-[#1B3B2B] uppercase tracking-wider">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Pagamento al Ritiro</span>
+                <span>{fulfillmentMethod === 'pickup' ? 'Pagamento al Ritiro' : 'Pagamento alla Consegna'}</span>
               </div>
               <p className="text-xs text-[#55645A] leading-relaxed">
-                Nessun pagamento anticipato con carta. Pagherai comodamente in rosticceria (Contanti, Bancomat o Carte).
+                Nessun pagamento anticipato con carta. Pagherai al momento della {fulfillmentMethod === 'pickup' ? 'consegna al banco' : 'consegna a domicilio'}.
               </p>
             </div>
 
@@ -394,7 +513,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               {isSubmitting ? (
                 <span>Registrazione in corso...</span>
               ) : (
-                <span>CONFERMA PRENOTAZIONE</span>
+                <span>CONFERMA ORDINE</span>
               )}
             </button>
           </div>

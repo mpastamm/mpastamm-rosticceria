@@ -2,6 +2,7 @@ import React from 'react';
 import { PartyPopper, Users, Calendar, Phone, MessageSquare, ArrowRight } from 'lucide-react';
 import { BusinessSettings } from '../types';
 import { generateDirectWhatsAppUrl } from '../services/whatsapp';
+import { INITIAL_SITE_CONTENT } from '../services/storage';
 
 interface CateringPageProps {
   settings: BusinessSettings;
@@ -9,6 +10,7 @@ interface CateringPageProps {
 }
 
 export const CateringPage: React.FC<CateringPageProps> = ({ settings, onNavigate }) => {
+  const content = { ...INITIAL_SITE_CONTENT, ...(settings.site_content || {}) };
   const whatsappUrl = generateDirectWhatsAppUrl(
     settings.whatsapp_notification_phone,
     "Buongiorno 'Mpastamm, vorrei ricevere informazioni e un preventivo per un servizio di catering ed eventi."
@@ -19,14 +21,22 @@ export const CateringPage: React.FC<CateringPageProps> = ({ settings, onNavigate
       <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-10">
         <div className="text-center space-y-3">
           <span className="font-script text-3xl sm:text-4xl text-[#16251A]">
-            Eventi & Feste
+            {content.catering_eyebrow}
           </span>
           <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-[#16251A]">
-            Catering 'Mpastamm
+            {content.catering_title}
           </h1>
           <p className="text-sm sm:text-base text-[#4E4438] max-w-xl mx-auto">
-            Porta l'eccellenza della rosticceria napoletana alle tue feste di compleanno, lauree, cene aziendali ed eventi privati.
+            {content.catering_description}
           </p>
+        </div>
+
+        <div className="rounded-3xl overflow-hidden shadow-xl border border-[#D5CABB]">
+          <img
+            src={content.catering_image_url}
+            alt={content.catering_image_alt}
+            className="w-full h-56 sm:h-72 object-cover"
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -35,10 +45,10 @@ export const CateringPage: React.FC<CateringPageProps> = ({ settings, onNavigate
               <PartyPopper className="w-5 h-5" />
             </div>
             <h3 className="font-serif text-lg font-bold text-[#16251A]">
-              Feste & Compleanni
+              {content.catering_feature_1_title}
             </h3>
             <p className="text-xs text-[#5B5044] leading-relaxed">
-              Vassoi assortiti di mini saltimbocca caldi, bun soffici farciti, trancetti di rutiello e mix di friggitoria dorata.
+              {content.catering_feature_1_description}
             </p>
           </div>
 
@@ -47,10 +57,10 @@ export const CateringPage: React.FC<CateringPageProps> = ({ settings, onNavigate
               <Users className="w-5 h-5" />
             </div>
             <h3 className="font-serif text-lg font-bold text-[#16251A]">
-              Eventi Aziendali
+              {content.catering_feature_2_title}
             </h3>
             <p className="text-xs text-[#5B5044] leading-relaxed">
-              Pausa pranzo o aperitivo di lavoro con confezioni curate e riscaldatori termici inclusi su richiesta per mantenere tutto croccante.
+              {content.catering_feature_2_description}
             </p>
           </div>
 
@@ -59,10 +69,10 @@ export const CateringPage: React.FC<CateringPageProps> = ({ settings, onNavigate
               <Calendar className="w-5 h-5" />
             </div>
             <h3 className="font-serif text-lg font-bold text-[#16251A]">
-              Personalizzazione Menu
+              {content.catering_feature_3_title}
             </h3>
             <p className="text-xs text-[#5B5044] leading-relaxed">
-              Possibilità di concordare farciture speciali, alternative vegetariane e orari di consegna dedicati.
+              {content.catering_feature_3_description}
             </p>
           </div>
         </div>
@@ -71,10 +81,10 @@ export const CateringPage: React.FC<CateringPageProps> = ({ settings, onNavigate
         <div className="bg-[#16251A] text-[#FAF7F2] p-6 sm:p-8 rounded-3xl border border-[#2B4332] shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="space-y-1 text-center sm:text-left">
             <h3 className="font-serif text-2xl font-bold text-white">
-              Vuoi organizzare il tuo catering?
+              {content.catering_action_title}
             </h3>
             <p className="text-xs sm:text-sm text-[#C9B9A6]">
-              Scrivici direttamente su WhatsApp o chiamaci per un preventivo personalizzato rapido.
+              {content.catering_action_description}
             </p>
           </div>
 
@@ -86,7 +96,7 @@ export const CateringPage: React.FC<CateringPageProps> = ({ settings, onNavigate
               className="px-5 py-2.5 rounded-full bg-[#E5D8B8] hover:bg-white text-[#16251A] font-bold text-xs sm:text-sm inline-flex items-center gap-2 transition-all active:scale-95 shadow-md"
             >
               <MessageSquare className="w-4 h-4 text-emerald-800" />
-              <span>Preventivo WhatsApp</span>
+              <span>{content.catering_whatsapp_label}</span>
             </a>
 
             <a

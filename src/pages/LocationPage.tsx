@@ -2,6 +2,7 @@ import React from 'react';
 import { MapPin, Phone, Clock, Instagram, Facebook, Music2, Navigation } from 'lucide-react';
 import { BusinessSettings, OpeningHourDay } from '../types';
 import { getSocialUrl } from '../utils/socialLinks';
+import { INITIAL_SITE_CONTENT } from '../services/storage';
 
 interface LocationPageProps {
   settings: BusinessSettings;
@@ -9,6 +10,7 @@ interface LocationPageProps {
 }
 
 export const LocationPage: React.FC<LocationPageProps> = ({ settings, openingHours }) => {
+  const content = { ...INITIAL_SITE_CONTENT, ...(settings.site_content || {}) };
   const instagramUrl = getSocialUrl('instagram', settings.instagram_url || settings.instagram_handle);
   const facebookUrl = getSocialUrl('facebook', settings.facebook_url);
   const tiktokUrl = getSocialUrl('tiktok', settings.tiktok_url);
@@ -18,14 +20,22 @@ export const LocationPage: React.FC<LocationPageProps> = ({ settings, openingHou
       {/* Title */}
       <div className="text-center max-w-2xl mx-auto space-y-2">
         <span className="text-xs uppercase tracking-widest text-[#556B2F] font-bold">
-          Vieni a Trovarci
+          {content.location_eyebrow}
         </span>
         <h1 className="font-display text-3xl sm:text-4xl font-bold text-[#1C211E]">
-          Dove Siamo & Orari
+          {content.location_title}
         </h1>
         <p className="text-sm text-[#55645A]">
-          Il laboratorio di 'Mpastamm ti aspetta per il ritiro dei tuoi ordini caldi appena sfornati.
+          {content.location_description}
         </p>
+      </div>
+
+      <div className="rounded-3xl overflow-hidden shadow-xl border border-[#E8DFD1]">
+        <img
+          src={content.location_image_url}
+          alt={content.location_image_alt}
+          className="w-full h-48 sm:h-64 object-cover"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -33,7 +43,7 @@ export const LocationPage: React.FC<LocationPageProps> = ({ settings, openingHou
         <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DFD1] shadow-xs space-y-6">
           <div>
             <h2 className="font-display text-xl font-bold text-[#1C211E] mb-1">
-              Rosticceria 'Mpastamm
+              {content.location_contact_title}
             </h2>
             <p className="text-xs uppercase tracking-wider text-[#7A8A7E] font-semibold">
               {settings.tagline}
@@ -116,7 +126,7 @@ export const LocationPage: React.FC<LocationPageProps> = ({ settings, openingHou
               className="inline-flex items-center justify-center gap-2 w-full py-3 bg-[#1B3B2B] hover:bg-[#28553E] text-white font-semibold text-xs rounded-xl shadow-xs transition-all"
             >
               <Navigation className="w-4 h-4" />
-              <span>Apri indicazioni stradali su Google Maps</span>
+              <span>{content.location_map_button_label}</span>
             </a>
           </div>
         </div>
@@ -126,7 +136,7 @@ export const LocationPage: React.FC<LocationPageProps> = ({ settings, openingHou
           <div className="flex items-center gap-2 border-b border-[#F0EBE1] pb-3">
             <Clock className="w-5 h-5 text-[#1B3B2B]" />
             <h2 className="font-display text-xl font-bold text-[#1C211E]">
-              Orari di Apertura Banco
+              {content.location_hours_title}
             </h2>
           </div>
 
@@ -148,7 +158,7 @@ export const LocationPage: React.FC<LocationPageProps> = ({ settings, openingHou
           </div>
 
           <p className="text-xs text-[#7A8A7E] bg-[#FAF7F2] p-3 rounded-xl border border-[#E8DFD1] leading-relaxed">
-            I prodotti caldi da forno e friggitoria vengono preparati in base alle fasce di prenotazione per garantire la massima freschezza e croccantezza.
+            {content.location_hours_note}
           </p>
         </div>
       </div>

@@ -45,52 +45,62 @@ export const HomePage: React.FC<HomePageProps> = ({
     return true;
   });
 
-  // Group products for the 5 showcase categories
-  const saltimboccaCategory = categories.find((c) => c.slug === 'saltimbocca') || {
-    id: 'cat_saltimbocca',
-    name: 'Saltimbocca',
-    slug: 'saltimbocca',
-    display_order: 1,
-    visible: true,
+  // Every visible category becomes a uniform showcase card. This keeps newly
+  // created cards from the admin area visible on the public vetrina.
+  const showcaseCategories = categories
+    .filter((category) => category.visible)
+    .sort((a, b) => a.display_order - b.display_order);
+
+  const getCategoryProducts = (categoryId: string) =>
+    products.filter((product) => product.category_id === categoryId && product.visible);
+
+  const getCategoryImage = (category: Category) => {
+    if (category.image_url) return category.image_url;
+    if (category.slug === 'saltimbocca') return ASSET_IMAGES.saltimbocca;
+    if (category.slug === 'bun') return ASSET_IMAGES.bun;
+    if (category.slug === 'rutiello-2-0' || category.slug === 'rutiello') return ASSET_IMAGES.rutiello;
+    if (category.slug === 'padellino') return ASSET_IMAGES.padellino;
+    if (category.slug === 'friggitoria') return ASSET_IMAGES.friggitoria;
+    return ASSET_IMAGES.hero;
   };
 
-  const bunCategory = categories.find((c) => c.slug === 'bun') || {
-    id: 'cat_bun',
-    name: 'Bun',
-    slug: 'bun',
-    display_order: 2,
-    visible: true,
+  const getCategoryIcon = (category: Category) => {
+    if (category.slug === 'bun') {
+      return (
+        <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 11a8 8 0 0 1 16 0H4Zm0 4h16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Zm0-1h16" />
+        </svg>
+      );
+    }
+    if (category.slug === 'friggitoria') {
+      return (
+        <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 10V5m4 5V3m4 7V4m4 6V5M4 10h16l-2 10H6L4 10Z" />
+        </svg>
+      );
+    }
+    if (category.slug === 'padellino') {
+      return (
+        <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <ellipse cx="12" cy="13" rx="8" ry="5" />
+          <path strokeLinecap="round" d="M4 13V8a2 2 0 0 1 2-2h2" />
+        </svg>
+      );
+    }
+    if (category.slug === 'rutiello-2-0' || category.slug === 'rutiello') {
+      return (
+        <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="4" />
+        </svg>
+      );
+    }
+    return (
+      <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v2H3V8Zm0 8a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-2H3v2Zm0-4h18" />
+      </svg>
+    );
   };
-
-  const rutielloCategory = categories.find((c) => c.slug === 'rutiello-2-0' || c.slug === 'rutiello') || {
-    id: 'cat_rutiello',
-    name: 'Rutiello 2.0',
-    slug: 'rutiello-2-0',
-    display_order: 3,
-    visible: true,
-  };
-
-  const padellinoCategory = categories.find((c) => c.slug === 'padellino') || {
-    id: 'cat_padellino',
-    name: 'Padellino',
-    slug: 'padellino',
-    display_order: 4,
-    visible: true,
-  };
-
-  const friggitoriaCategory = categories.find((c) => c.slug === 'friggitoria') || {
-    id: 'cat_friggitoria',
-    name: 'Friggitoria',
-    slug: 'friggitoria',
-    display_order: 5,
-    visible: true,
-  };
-
-  const saltimboccaProducts = products.filter((p) => p.category_id === saltimboccaCategory.id && p.visible);
-  const bunProducts = products.filter((p) => p.category_id === bunCategory.id && p.visible);
-  const rutielloProducts = products.filter((p) => p.category_id === rutielloCategory.id && p.visible);
-  const padellinoProducts = products.filter((p) => p.category_id === padellinoCategory.id && p.visible);
-  const friggitoriaProducts = products.filter((p) => p.category_id === friggitoriaCategory.id && p.visible);
   const heroImage = settings.hero_image_url || ASSET_IMAGES.hero;
   const heroTitle = settings.hero_title || 'La Vetrina';
   const heroDescription =
@@ -202,104 +212,31 @@ export const HomePage: React.FC<HomePageProps> = ({
             )}
           </div>
         ) : (
-          /* DEFAULT: FIVE UNIFORM CATEGORY BOARDS */
           <div className="grid grid-cols-1 items-stretch gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-6">
-              {/* 1. SALTIMBOCCA */}
-              <div className="flex min-w-0 flex-col lg:col-span-2">
-              <CategoryShowcaseModule
-                category={saltimboccaCategory}
-                title={saltimboccaCategory.name}
-                subtitle={saltimboccaCategory.description || "L'arte del gusto in un morso."}
-                heroImage={saltimboccaCategory.image_url || ASSET_IMAGES.saltimbocca}
-                icon={
-                  <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v2H3V8Zm0 8a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-2H3v2Zm0-4h18" />
-                  </svg>
-                }
-                products={saltimboccaProducts}
-                onOpenProductModal={onOpenProductModal}
-                onQuickAdd={onQuickAdd}
-                onExploreCategory={() => setSelectedCategoryId(saltimboccaCategory.id)}
-              />
-              </div>
+            {showcaseCategories.map((category, index) => {
+              const isFiveCardLayout = showcaseCategories.length === 5;
+              const placementClass = isFiveCardLayout && index === 3
+                ? 'lg:col-start-2'
+                : isFiveCardLayout && index === 4
+                  ? 'lg:col-start-4'
+                  : '';
 
-              {/* 2. BUN */}
-              <div className="flex min-w-0 flex-col lg:col-span-2">
-              <CategoryShowcaseModule
-                category={bunCategory}
-                title={bunCategory.name}
-                subtitle={bunCategory.description || 'Soffice, fragrante, ineguagliabile.'}
-                heroImage={bunCategory.image_url || ASSET_IMAGES.bun}
-                icon={
-                  <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 11a8 8 0 0 1 16 0H4Zm0 4h16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Zm0-1h16" />
-                  </svg>
-                }
-                products={bunProducts}
-                onOpenProductModal={onOpenProductModal}
-                onQuickAdd={onQuickAdd}
-                onExploreCategory={() => setSelectedCategoryId(bunCategory.id)}
-              />
-              </div>
-
-              {/* 3. RUTIELLO 2.0 */}
-              <div className="flex min-w-0 flex-col lg:col-span-2">
-              <CategoryShowcaseModule
-                category={rutielloCategory}
-                title={rutielloCategory.name}
-                subtitle={rutielloCategory.description || 'La tradizione si rinnova.'}
-                heroImage={rutielloCategory.image_url || ASSET_IMAGES.rutiello}
-                icon={
-                  <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="9" />
-                    <circle cx="12" cy="12" r="4" />
-                  </svg>
-                }
-                products={rutielloProducts}
-                onOpenProductModal={onOpenProductModal}
-                onQuickAdd={onQuickAdd}
-                onExploreCategory={() => setSelectedCategoryId(rutielloCategory.id)}
-              />
-              </div>
-
-              {/* 4. PADELLINO: same board width as the first row, centered */}
-              <div className="flex min-w-0 flex-col lg:col-span-2 lg:col-start-2">
-                <CategoryShowcaseModule
-                  category={padellinoCategory}
-                  title={padellinoCategory.name}
-                  subtitle={padellinoCategory.description || 'Tutta la bontà della rosticceria.'}
-                  heroImage={padellinoCategory.image_url || ASSET_IMAGES.padellino}
-                  icon={
-                    <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <ellipse cx="12" cy="13" rx="8" ry="5" />
-                      <path strokeLinecap="round" d="M4 13V8a2 2 0 0 1 2-2h2" />
-                    </svg>
-                  }
-                  products={padellinoProducts}
-                  onOpenProductModal={onOpenProductModal}
-                  onQuickAdd={onQuickAdd}
-                  onExploreCategory={() => setSelectedCategoryId(padellinoCategory.id)}
-                />
-              </div>
-
-              {/* 5. FRIGGITORIA: same board width as the first row, centered */}
-              <div className="flex min-w-0 flex-col lg:col-span-2 lg:col-start-4">
-                <CategoryShowcaseModule
-                  category={friggitoriaCategory}
-                  title={friggitoriaCategory.name}
-                  subtitle={friggitoriaCategory.description || 'Croccante fuori, irresistibile dentro.'}
-                  heroImage={friggitoriaCategory.image_url || ASSET_IMAGES.friggitoria}
-                  icon={
-                    <svg className="w-5 h-5 stroke-[1.75]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 10V5m4 5V3m4 7V4m4 6V5M4 10h16l-2 10H6L4 10Z" />
-                    </svg>
-                  }
-                  products={friggitoriaProducts}
-                  onOpenProductModal={onOpenProductModal}
-                  onQuickAdd={onQuickAdd}
-                  onExploreCategory={() => setSelectedCategoryId(friggitoriaCategory.id)}
-                />
-              </div>
+              return (
+                <div key={category.id} className={`flex min-w-0 flex-col lg:col-span-2 ${placementClass}`}>
+                  <CategoryShowcaseModule
+                    category={category}
+                    title={category.name}
+                    subtitle={category.description || 'Scopri le nostre specialità.'}
+                    heroImage={getCategoryImage(category)}
+                    icon={getCategoryIcon(category)}
+                    products={getCategoryProducts(category.id)}
+                    onOpenProductModal={onOpenProductModal}
+                    onQuickAdd={onQuickAdd}
+                    onExploreCategory={() => setSelectedCategoryId(category.id)}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
       </main>

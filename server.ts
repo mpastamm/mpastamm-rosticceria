@@ -48,6 +48,10 @@ app.post('/api/notify-order', async (req: Request, res: Response) => {
     formattedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
   } catch {}
 
+  const isDelivery = order.fulfillment_method === 'delivery';
+  const deliveryMapsUrl = order.delivery_latitude != null && order.delivery_longitude != null
+    ? `https://www.google.com/maps?q=${order.delivery_latitude},${order.delivery_longitude}`
+    : '';
   const messageBody =
     `🔔 *NUOVO ORDINE*\n\n` +
     `*Ordine:* ${order.order_number}\n\n` +
@@ -55,7 +59,12 @@ app.post('/api/notify-order', async (req: Request, res: Response) => {
     `*Telefono:*\n${order.customer_phone}\n\n` +
     `*PRODOTTI*\n${itemsText}\n\n` +
     `*Totale:* €${Number(order.total || 0).toFixed(2).replace('.', ',')}\n\n` +
-    `*Ritiro:*\n${formattedDate}\nOre ${order.pickup_time}` +
+    `*Modalità:*\n${isDelivery ? 'Consegna a domicilio' : 'Ritiro in negozio'}\n` +
+    `${isDelivery ? '*Consegna:*' : '*Ritiro:*'}\n${formattedDate}\nOre ${order.pickup_time}` +
+    (isDelivery
+      ? `\n\n*Indirizzo consegna:*\n${order.delivery_address || 'Non indicato'}` +
+        (deliveryMapsUrl ? `\n*Posizione GPS:*\n${deliveryMapsUrl}` : '')
+      : '') +
     (order.notes ? `\n\n*Note:*\n${order.notes}` : '');
 
   if (process.env.NODE_ENV !== 'production') {

@@ -141,11 +141,11 @@ export const CartPage: React.FC<CartPageProps> = ({
               </span>
             </div>
             <div className="flex justify-between text-[#55645A]">
-              <span>Costo servizio d'asporto</span>
-              <span className="text-emerald-700 font-medium">Gratuito</span>
+              <span>Modalità di ricezione</span>
+              <span className="text-[#1B3B2B] font-medium">Da scegliere</span>
             </div>
             <div className="pt-3 border-t border-[#F0EBE1] flex justify-between items-baseline font-bold text-lg text-[#1C211E]">
-              <span>Totale al ritiro</span>
+              <span>Totale prodotti</span>
               <span className="font-mono tabular-nums text-xl text-[#1B3B2B]">
                 €{total.toFixed(2).replace('.', ',')}
               </span>
@@ -153,7 +153,7 @@ export const CartPage: React.FC<CartPageProps> = ({
           </div>
 
           <p className="text-xs text-[#7A8A7E] bg-[#FAF7F2] p-3 rounded-xl border border-[#E8DFD1]">
-            💡 Il pagamento avverrà al momento del ritiro presso la nostra rosticceria in contanti o con POS.
+            💡 Nel passaggio successivo scegli se ritirare in negozio o ricevere l’ordine a domicilio. Pagamento alla consegna, in contanti o con POS.
           </p>
 
           <button

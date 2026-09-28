@@ -10,6 +10,10 @@ import {
   ChevronUp,
   MessageSquare,
   Search,
+  MapPin,
+  Store,
+  Truck,
+  ExternalLink,
 } from 'lucide-react';
 import { Order, OrderStatus } from '../../types';
 import { OrderStatusBadge } from '../../components/OrderStatusBadge';
@@ -72,7 +76,7 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
             Gestione Ordini
           </h2>
           <p className="text-xs sm:text-sm text-[#55645A]">
-            Controlla le prenotazioni per il ritiro al banco caldo e aggiorna gli stati di preparazione.
+            Controlla i ritiri e le consegne a domicilio, poi aggiorna gli stati di preparazione.
           </p>
         </div>
 
@@ -189,6 +193,11 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
                           <Clock className="w-3.5 h-3.5 text-[#1B3B2B]" /> Ore {order.pickup_time}
                         </span>
                         <span>·</span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-[#1B3B2B]">
+                          {order.fulfillment_method === 'delivery' ? <Truck className="w-3.5 h-3.5" /> : <Store className="w-3.5 h-3.5" />}
+                          {order.fulfillment_method === 'delivery' ? 'Consegna' : 'Ritiro'}
+                        </span>
+                        <span>·</span>
                         <span>{order.items.length} articoli</span>
                         <span>·</span>
                         <span className="font-mono font-bold text-[#1B3B2B]">
@@ -264,6 +273,28 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
                         </div>
                       )}
                     </div>
+
+                    {order.fulfillment_method === 'delivery' && (
+                      <div className="bg-white p-4 rounded-xl border border-emerald-200 space-y-2">
+                        <h5 className="text-xs uppercase font-bold tracking-wider text-emerald-800 flex items-center gap-1.5">
+                          <Truck className="w-4 h-4" /> Dati consegna
+                        </h5>
+                        <p className="text-sm text-[#1C211E] flex items-start gap-2">
+                          <MapPin className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                          <span>{order.delivery_address || 'Indirizzo non inserito; usare la posizione GPS.'}</span>
+                        </p>
+                        {order.delivery_latitude != null && order.delivery_longitude != null && (
+                          <a
+                            href={`https://www.google.com/maps?q=${order.delivery_latitude},${order.delivery_longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 hover:underline"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> Apri posizione GPS su Google Maps
+                          </a>
+                        )}
+                      </div>
+                    )}
 
                     {/* Change Status Fast Buttons (Section 15: One touch) */}
                     <div>

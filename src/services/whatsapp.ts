@@ -20,13 +20,24 @@ export function formatWhatsAppMessage(order: Order): string {
     // Keep as is
   }
 
+  const isDelivery = order.fulfillment_method === 'delivery';
+  const deliveryMapsUrl = order.delivery_latitude != null && order.delivery_longitude != null
+    ? `https://www.google.com/maps?q=${order.delivery_latitude},${order.delivery_longitude}`
+    : '';
+
   let text = `🔔 *NUOVO ORDINE*\n\n` +
     `*Ordine:* ${order.order_number}\n\n` +
     `*Cliente:*\n${order.customer_name} ${order.customer_surname}\n\n` +
     `*Telefono:*\n${order.customer_phone}\n\n` +
     `*PRODOTTI*\n${itemsText}\n\n` +
     `*Totale:* €${order.total.toFixed(2).replace('.', ',')}\n\n` +
-    `*Ritiro:*\n${formattedDate}\nOre ${order.pickup_time}`;
+    `*Modalità:*\n${isDelivery ? 'Consegna a domicilio' : 'Ritiro in negozio'}\n` +
+    `${isDelivery ? '*Consegna:*' : '*Ritiro:*'}\n${formattedDate}\nOre ${order.pickup_time}`;
+
+  if (isDelivery) {
+    text += `\n\n*Indirizzo consegna:*\n${order.delivery_address?.trim() || 'Non indicato'}`;
+    if (deliveryMapsUrl) text += `\n*Posizione GPS:*\n${deliveryMapsUrl}`;
+  }
 
   if (order.notes && order.notes.trim()) {
     text += `\n\n*Note:*\n${order.notes.trim()}`;

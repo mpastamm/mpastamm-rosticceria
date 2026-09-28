@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles, Heart, Award, ShieldCheck, ArrowRight } from 'lucide-react';
 import { BusinessSettings } from '../types';
 import { ASSET_IMAGES } from '../services/imageMap';
+import { INITIAL_SITE_CONTENT } from '../services/storage';
 
 interface AboutPageProps {
   settings: BusinessSettings;
@@ -9,27 +10,29 @@ interface AboutPageProps {
 }
 
 export const AboutPage: React.FC<AboutPageProps> = ({ settings, onNavigate }) => {
+  const content = { ...INITIAL_SITE_CONTENT, ...(settings.site_content || {}) };
+
   return (
     <div className="bg-[#E5DFD4] min-h-screen text-[#1C211E] py-10 sm:py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-10">
         {/* Title */}
         <div className="text-center space-y-3">
           <span className="font-script text-3xl sm:text-4xl text-[#16251A]">
-            La nostra storia
+            {content.about_eyebrow}
           </span>
           <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-[#16251A]">
-            Chi Siamo
+            {content.about_title}
           </h1>
           <p className="text-sm sm:text-base text-[#4E4438] max-w-xl mx-auto">
-            'Mpastamm nasce dal desiderio di portare nel cuore della città i profumi veri della rosticceria e del forno tradizionale campano.
+            {content.about_description}
           </p>
         </div>
 
         {/* Hero Photo */}
         <div className="rounded-3xl overflow-hidden shadow-2xl border border-[#D5CABB]">
           <img
-            src={ASSET_IMAGES.hero}
-            alt="'Mpastamm Locale"
+            src={content.about_image_url || ASSET_IMAGES.hero}
+            alt={content.about_image_alt}
             className="w-full h-72 sm:h-96 object-cover"
           />
         </div>
@@ -39,30 +42,30 @@ export const AboutPage: React.FC<AboutPageProps> = ({ settings, onNavigate }) =>
           <div className="bg-[#FAF7F2] p-6 rounded-2xl border border-[#D5CABB] space-y-2">
             <Sparkles className="w-6 h-6 text-[#16251A]" />
             <h3 className="font-serif text-lg font-bold text-[#16251A]">
-              Lievitazione Lenta
+              {content.about_feature_1_title}
             </h3>
             <p className="text-xs text-[#5B5044] leading-relaxed">
-              Oltre 24 ore di maturazione a temperatura controllata per un impasto leggero, profumato e altamente digeribile.
+              {content.about_feature_1_description}
             </p>
           </div>
 
           <div className="bg-[#FAF7F2] p-6 rounded-2xl border border-[#D5CABB] space-y-2">
             <Award className="w-6 h-6 text-[#16251A]" />
             <h3 className="font-serif text-lg font-bold text-[#16251A]">
-              Ingredienti Selezionati
+              {content.about_feature_2_title}
             </h3>
             <p className="text-xs text-[#5B5044] leading-relaxed">
-              Mozzarella e provola affumicata dei monti Lattari, pomodoro San Marzano e farine italiane macinate a pietra.
+              {content.about_feature_2_description}
             </p>
           </div>
 
           <div className="bg-[#FAF7F2] p-6 rounded-2xl border border-[#D5CABB] space-y-2">
             <Heart className="w-6 h-6 text-[#16251A]" />
             <h3 className="font-serif text-lg font-bold text-[#16251A]">
-              Passione Quotidiana
+              {content.about_feature_3_title}
             </h3>
             <p className="text-xs text-[#5B5044] leading-relaxed">
-              "Nun c'è fame, è voglia e sfizio": ogni nostra preparazione è pensata per regalare un momento di autentica gioia.
+              {content.about_feature_3_description}
             </p>
           </div>
         </div>
@@ -72,7 +75,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ settings, onNavigate }) =>
             onClick={() => onNavigate('/')}
             className="px-6 py-3 rounded-full bg-[#16251A] hover:bg-[#203626] text-white font-medium text-sm inline-flex items-center gap-2 shadow-md transition-all active:scale-95"
           >
-            <span>Scopri La Vetrina di Oggi</span>
+            <span>{content.about_cta_label}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

@@ -133,8 +133,16 @@ export async function syncOpeningHours(hours: OpeningHourDay[]) {
 }
 
 export async function uploadProductImage(blob: Blob): Promise<string | null> {
+  return uploadImage(blob, 'products');
+}
+
+export async function uploadSiteImage(blob: Blob): Promise<string | null> {
+  return uploadImage(blob, 'site-assets');
+}
+
+async function uploadImage(blob: Blob, folder: string): Promise<string | null> {
   if (!isReady() || !supabase || !(await hasAuthenticatedSession())) return null;
-  const path = `products/${crypto.randomUUID()}.jpg`;
+  const path = `${folder}/${crypto.randomUUID()}.jpg`;
   const { error } = await supabase.storage.from('product-images').upload(path, blob, {
     contentType: 'image/jpeg',
     cacheControl: '31536000',
