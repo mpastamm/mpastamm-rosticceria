@@ -54,7 +54,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ settings, onNavigate }) =>
               <img
                 src={content.about_image_url || ASSET_IMAGES.hero}
                 alt={content.about_image_alt}
-                className="absolute inset-0 h-full w-full object-cover object-center"
+                className="absolute inset-0 h-full w-full object-cover object-[68%_center]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#16251A]/25 via-transparent to-transparent" aria-hidden="true" />
               <div className="absolute bottom-5 left-5 rounded-full border border-white/40 bg-[#16251A]/75 px-4 py-2 text-xs font-medium tracking-wide text-white backdrop-blur-sm sm:bottom-7 sm:left-7">
