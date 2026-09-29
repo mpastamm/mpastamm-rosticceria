@@ -70,7 +70,7 @@ export const INITIAL_SITE_CONTENT: SiteContent = {
   logo_image_url: '',
   about_eyebrow: 'La nostra storia',
   about_title: 'Chi Siamo',
-  about_description: "'Mpastamm nasce dal desiderio di portare nel cuore della città i profumi veri della rosticceria e del forno tradizionale campano.",
+  about_description: "'Mpastamm nasce dal desiderio di portare a tavola il volto più autentico della rosticceria campana: impasti curati, ingredienti scelti e sapori che fanno sentire a casa.\n\nLavoriamo ogni giorno con lievitazioni lente, ricette contemporanee e rispetto per la tradizione, per una pausa veloce, una serata in compagnia o un catering fatto bene. Ogni dettaglio nasce nel nostro laboratorio, con una promessa semplice: nun è fame, è voglia e sfizio.",
   about_image_url: ASSET_IMAGES.hero,
   about_image_alt: "'Mpastamm Locale",
   about_feature_1_title: 'Lievitazione Lenta',
