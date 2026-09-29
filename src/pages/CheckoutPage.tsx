@@ -418,14 +418,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </div>
 
             {/* Stripe Payment Trust Badge */}
-            <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#E8DFD1] space-y-2">
+            <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#E8DFD1]">
               <div className="flex items-center gap-2 text-xs font-bold text-[#1B3B2B] uppercase tracking-wider">
                 <CreditCard className="w-4 h-4 text-emerald-600" />
-                <span>Pagamento sicuro online</span>
+                <span>Pagamento sicuro</span>
               </div>
-              <p className="text-xs text-[#55645A] leading-relaxed">
-                Dopo aver cliccato su “Paga” verrai reindirizzato alla pagina sicura Stripe. Il pagamento è richiesto subito, sia per il ritiro in negozio sia per la consegna.
-              </p>
             </div>
 
             {/* Submit Button */}
