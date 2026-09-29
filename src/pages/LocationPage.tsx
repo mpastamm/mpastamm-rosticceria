@@ -34,7 +34,7 @@ export const LocationPage: React.FC<LocationPageProps> = ({ settings, openingHou
         <img
           src={content.location_image_url}
           alt={content.location_image_alt}
-          className="h-72 w-full object-cover object-[68%_20%] sm:h-[22rem]"
+          className="aspect-video w-full object-cover"
         />
       </div>
 
