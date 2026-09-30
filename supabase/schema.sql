@@ -55,8 +55,12 @@ CREATE TABLE IF NOT EXISTS orders (
   notes TEXT,
   subtotal NUMERIC(10, 2) NOT NULL,
   total NUMERIC(10, 2) NOT NULL,
-  status TEXT NOT NULL DEFAULT 'NUOVO' CHECK (status IN ('NUOVO', 'ACCETTATO', 'IN PREPARAZIONE', 'PRONTO', 'RITIRATO', 'ANNULLATO')),
+  status TEXT NOT NULL DEFAULT 'NUOVO' CHECK (status IN ('NUOVO', 'IN ATTESA CLIENTE', 'ACCETTATO', 'IN PREPARAZIONE', 'PRONTO', 'RITIRATO', 'ANNULLATO')),
   payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded')),
+  customer_token TEXT,
+  admin_message TEXT,
+  missing_product_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+  customer_response TEXT NOT NULL DEFAULT 'pending' CHECK (customer_response IN ('pending', 'accepted', 'declined')),
   stripe_checkout_session_id TEXT,
   stripe_payment_intent_id TEXT,
   paid_at TIMESTAMPTZ,
@@ -72,6 +76,17 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_checkout_session_id TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_token TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS admin_message TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS missing_product_ids JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_response TEXT NOT NULL DEFAULT 'pending';
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
+ALTER TABLE orders ADD CONSTRAINT orders_status_check
+  CHECK (status IN ('NUOVO', 'IN ATTESA CLIENTE', 'ACCETTATO', 'IN PREPARAZIONE', 'PRONTO', 'RITIRATO', 'ANNULLATO'));
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_customer_response_check;
+ALTER TABLE orders ADD CONSTRAINT orders_customer_response_check
+  CHECK (customer_response IN ('pending', 'accepted', 'declined'));
+CREATE INDEX IF NOT EXISTS orders_customer_token_idx ON orders (customer_token);
 ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_payment_status_check;
 ALTER TABLE orders ADD CONSTRAINT orders_payment_status_check
   CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded'));

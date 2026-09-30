@@ -36,6 +36,16 @@ export const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({
         </span>
       );
 
+    case 'IN ATTESA CLIENTE':
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 text-orange-800 bg-orange-100/90 border border-orange-300 rounded-md ${sizeClasses} ${className}`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse" />
+          IN ATTESA CLIENTE
+        </span>
+      );
+
     case 'IN PREPARAZIONE':
       return (
         <span

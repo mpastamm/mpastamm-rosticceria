@@ -47,6 +47,7 @@ import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
 import { AdminHoursPage } from './pages/admin/AdminHoursPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { AdminSiteContentPage } from './pages/admin/AdminSiteContentPage';
+import { AdminOrderNotifications } from './components/admin/AdminOrderNotifications';
 
 export default function App() {
   // Navigation Path
@@ -197,6 +198,10 @@ export default function App() {
     StorageService.updateOrderStatus(orderId, status);
   };
 
+  const handleUpdateOrder = (orderId: string, updates: Partial<Order>) => {
+    StorageService.updateOrder(orderId, updates);
+  };
+
   const handleSaveProduct = (data: Partial<Product>) => {
     if (data.id) {
       StorageService.updateProduct(data.id, data);
@@ -256,7 +261,7 @@ export default function App() {
 
   // Pending orders counter for admin badges
   const pendingOrdersCount = orders.filter(
-    (o) => o.status === 'NUOVO' || o.status === 'ACCETTATO' || o.status === 'IN PREPARAZIONE'
+    (o) => o.status === 'NUOVO' || o.status === 'IN ATTESA CLIENTE' || o.status === 'ACCETTATO' || o.status === 'IN PREPARAZIONE'
   ).length;
 
   // Render Admin Area
@@ -291,6 +296,8 @@ export default function App() {
 
         {/* Main Admin Content View */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full pb-24 lg:pb-12">
+          <AdminOrderNotifications orders={orders} onNavigate={navigate} />
+
           {/* Subroutes */}
           {currentPath === '/admin' && (
             <AdminDashboardPage
@@ -317,6 +324,7 @@ export default function App() {
             <AdminOrdersPage
               orders={orders}
               onUpdateOrderStatus={handleUpdateOrderStatus}
+              onUpdateOrder={handleUpdateOrder}
             />
           )}
 

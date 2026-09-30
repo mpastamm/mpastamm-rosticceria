@@ -889,6 +889,18 @@ export class StorageService {
     return orders[idx];
   }
 
+  // Update the browser cache without sending an anonymous customer update to Supabase.
+  // Customer approval responses are written securely by the server API.
+  static cacheOrder(order: Order): Order {
+    const orders = this.getOrders();
+    const idx = orders.findIndex((item) => item.id === order.id || item.order_number === order.order_number);
+    if (idx === -1) orders.unshift(order);
+    else orders[idx] = { ...orders[idx], ...order };
+    localStorage.setItem(KEYS.ORDERS, JSON.stringify(orders));
+    emitUpdate();
+    return order;
+  }
+
   static createOrder(orderInput: Omit<Order, 'id' | 'order_number' | 'created_at' | 'updated_at'>): Order {
     const orders = this.getOrders();
     const nextNum = (orders.length + 49).toString().padStart(4, '0');

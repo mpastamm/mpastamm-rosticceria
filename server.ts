@@ -4,6 +4,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { onRequestPost as createCheckoutSession } from './functions/api/create-checkout-session';
 import { onRequestGet as getStripeSession } from './functions/api/stripe-session';
+import { onRequestGet as getOrderStatus } from './functions/api/order-status';
+import { onRequestPost as decideOrder } from './functions/api/order-decision';
+import { onRequestPost as createOrderRequest } from './functions/api/create-order-request';
 
 dotenv.config();
 
@@ -40,6 +43,47 @@ app.get('/api/stripe-session', async (req: Request, res: Response) => {
     res.status(response.status).type('application/json').send(await response.text());
   } catch (error: any) {
     res.status(500).json({ error: error?.message || 'Errore verifica Stripe' });
+  }
+});
+
+app.get('/api/order-status', async (req: Request, res: Response) => {
+  try {
+    const query = new URLSearchParams();
+    if (typeof req.query.order_id === 'string') query.set('order_id', req.query.order_id);
+    if (typeof req.query.token === 'string') query.set('token', req.query.token);
+    const request = new globalThis.Request(`http://${req.headers.host || 'localhost:3000'}/api/order-status?${query.toString()}`);
+    const response = await getOrderStatus({ request, env: process.env });
+    res.status(response.status).type('application/json').send(await response.text());
+  } catch (error: any) {
+    res.status(500).json({ error: error?.message || 'Errore lettura stato ordine' });
+  }
+});
+
+app.post('/api/order-decision', async (req: Request, res: Response) => {
+  try {
+    const request = new globalThis.Request(`http://${req.headers.host || 'localhost:3000'}/api/order-decision`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+    });
+    const response = await decideOrder({ request, env: process.env });
+    res.status(response.status).type('application/json').send(await response.text());
+  } catch (error: any) {
+    res.status(500).json({ error: error?.message || 'Errore risposta ordine' });
+  }
+});
+
+app.post('/api/create-order-request', async (req: Request, res: Response) => {
+  try {
+    const request = new globalThis.Request(`http://${req.headers.host || 'localhost:3000'}/api/create-order-request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+    });
+    const response = await createOrderRequest({ request, env: process.env });
+    res.status(response.status).type('application/json').send(await response.text());
+  } catch (error: any) {
+    res.status(500).json({ error: error?.message || 'Errore invio richiesta ordine' });
   }
 });
 

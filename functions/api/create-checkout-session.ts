@@ -61,8 +61,31 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     const order = body.order;
     validateOrder(order);
 
-    const productIds = [...new Set(order.items.map((item: any) => cleanProductId(item.product_id)).filter(Boolean))];
-    if (productIds.length !== order.items.length) throw new Error('Prodotto non valido nel carrello');
+    let sourceOrder = order;
+    let isApprovalFlow = false;
+    if (typeof order.customer_token === 'string' && order.customer_token.trim()) {
+      const storedOrders = await supabaseRequest(
+        context.env,
+        `orders?select=*&id=eq.${encodeURIComponent(order.id)}&customer_token=eq.${encodeURIComponent(order.customer_token.trim())}&limit=1`,
+        { method: 'GET' },
+      );
+      const storedOrder = Array.isArray(storedOrders) ? storedOrders[0] : null;
+      if (!storedOrder) throw new Error('Ordine non trovato o token non valido');
+      if (storedOrder.status !== 'ACCETTATO') {
+        throw new Error('La rosticceria deve accettare l’ordine prima del pagamento');
+      }
+      if (storedOrder.payment_status === 'paid') throw new Error('Questo ordine risulta già pagato');
+      const storedItems = await supabaseRequest(
+        context.env,
+        `order_items?select=*&order_id=eq.${encodeURIComponent(storedOrder.id)}&order=id`,
+        { method: 'GET' },
+      );
+      sourceOrder = { ...storedOrder, items: Array.isArray(storedItems) ? storedItems : [] };
+      isApprovalFlow = true;
+    }
+
+    const productIds = [...new Set(sourceOrder.items.map((item: any) => cleanProductId(item.product_id)).filter(Boolean))];
+    if (productIds.length !== sourceOrder.items.length) throw new Error('Prodotto non valido nel carrello');
 
     const products = await supabaseRequest(
       context.env,
@@ -72,7 +95,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     const productsById = new Map<string, any>((products || []).map((product: any) => [product.id, product] as [string, any]));
     if (productsById.size !== productIds.length) throw new Error('Uno o più prodotti non sono più disponibili');
 
-    const authoritativeItems = order.items.map((item: any) => {
+    const authoritativeItems = sourceOrder.items.map((item: any) => {
       const product: any = productsById.get(item.product_id);
       const price = asMoney(product.price);
       return {
@@ -88,20 +111,22 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
       };
     });
     const total = Math.round(authoritativeItems.reduce((sum: number, item: any) => sum + item.subtotal, 0) * 100) / 100;
-    const serverOrder = { ...order, subtotal: total, total, payment_status: 'pending', items: authoritativeItems };
+    const serverOrder = { ...sourceOrder, subtotal: total, total, payment_status: 'pending', items: authoritativeItems };
 
-    await persistPendingOrder(context.env, serverOrder, authoritativeItems, total);
+    if (!isApprovalFlow) {
+      await persistPendingOrder(context.env, serverOrder, authoritativeItems, total);
+    }
 
     const appUrl = (context.env.APP_URL || 'https://mpastamm.it').replace(/\/$/, '');
     const params: Record<string, string | number | boolean> = {
       mode: 'payment',
-      client_reference_id: order.id,
-      success_url: `${appUrl}/ordine-confermato/${encodeURIComponent(order.order_number)}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/checkout?payment=cancelled&order=${encodeURIComponent(order.order_number)}`,
+      client_reference_id: serverOrder.id,
+      success_url: `${appUrl}/ordine-confermato/${encodeURIComponent(serverOrder.order_number)}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/checkout?payment=cancelled&order=${encodeURIComponent(serverOrder.order_number)}`,
       'phone_number_collection[enabled]': true,
-      'metadata[order_id]': order.id,
-      'metadata[order_number]': order.order_number,
-      'metadata[fulfillment_method]': order.fulfillment_method,
+      'metadata[order_id]': serverOrder.id,
+      'metadata[order_number]': serverOrder.order_number,
+      'metadata[fulfillment_method]': serverOrder.fulfillment_method,
     };
     authoritativeItems.forEach((item: any, index: number) => {
       const product = productsById.get(item.product_id);
@@ -118,7 +143,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
       body: formEncode(params),
     });
 
-    await supabaseRequest(context.env, `orders?id=eq.${encodeURIComponent(order.id)}`, {
+    await supabaseRequest(context.env, `orders?id=eq.${encodeURIComponent(serverOrder.id)}`, {
       method: 'PATCH',
       body: JSON.stringify({
         stripe_checkout_session_id: session.id,

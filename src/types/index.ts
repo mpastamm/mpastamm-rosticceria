@@ -36,6 +36,7 @@ export interface Product {
 
 export type OrderStatus =
   | 'NUOVO'
+  | 'IN ATTESA CLIENTE'
   | 'ACCETTATO'
   | 'IN PREPARAZIONE'
   | 'PRONTO'
@@ -45,6 +46,8 @@ export type OrderStatus =
 export type FulfillmentMethod = 'pickup' | 'delivery';
 
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+
+export type CustomerOrderResponse = 'pending' | 'accepted' | 'declined';
 
 export interface OrderItem {
   id: string;
@@ -75,6 +78,10 @@ export interface Order {
   total: number;
   status: OrderStatus;
   payment_status?: PaymentStatus;
+  customer_token?: string;
+  admin_message?: string;
+  missing_product_ids?: string[];
+  customer_response?: CustomerOrderResponse;
   stripe_checkout_session_id?: string;
   stripe_payment_intent_id?: string;
   paid_at?: string;

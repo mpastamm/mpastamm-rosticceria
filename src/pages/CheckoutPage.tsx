@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Calendar, Phone, User, FileText, MapPin, Store, Truck, Navigation, CreditCard } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowLeft, Calendar, Phone, User, FileText, MapPin, Store, Truck, Navigation, CreditCard, Timer, AlertTriangle, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { CartItem, Order, BusinessSettings, FulfillmentMethod } from '../types';
 import { StorageService } from '../services/storage';
 
@@ -21,6 +21,156 @@ function formatLocalTime(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+const PENDING_ORDER_STORAGE_KEY = 'mpastamm_pending_customer_order_v1';
+
+function loadPendingOrder(): Order | null {
+  const orderId = window.localStorage.getItem(PENDING_ORDER_STORAGE_KEY);
+  return orderId ? StorageService.getOrderById(orderId) || null : null;
+}
+
+interface PendingOrderPanelProps {
+  order: Order;
+  countdown: number;
+  isChecking: boolean;
+  isStartingPayment: boolean;
+  onDecision: (decision: 'accept' | 'decline') => void;
+  onPay: () => void;
+  onReset: () => void;
+}
+
+const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
+  order,
+  countdown,
+  isChecking,
+  isStartingPayment,
+  onDecision,
+  onPay,
+  onReset,
+}) => {
+  const isMissingReview = order.status === 'IN ATTESA CLIENTE';
+  const isAccepted = order.status === 'ACCETTATO';
+  const isCancelled = order.status === 'ANNULLATO';
+  const canPay = isAccepted && countdown === 0;
+  const missingNames = (order.missing_product_ids || [])
+    .map((id) => order.items.find((item) => item.product_id === id)?.product_name_snapshot)
+    .filter(Boolean);
+  const createdAt = new Date(order.created_at).toLocaleTimeString('it-IT', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-5 px-4 py-10 sm:px-6 sm:py-14">
+      <div className="text-center">
+        <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">
+          Ordine {order.order_number}
+        </span>
+        <h1 className="mt-4 font-display text-2xl font-bold text-[#1C211E] sm:text-3xl">
+          {isCancelled ? 'Ordine annullato' : isMissingReview ? 'Serve una tua conferma' : isAccepted ? 'Ordine accettato' : 'Ordine ricevuto'}
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-[#55645A]">
+          {isCancelled
+            ? 'La richiesta è stata annullata. Puoi tornare alla vetrina e creare un nuovo ordine.'
+            : isMissingReview
+              ? 'La rosticceria ha segnalato alcuni prodotti non disponibili. Scegli se proseguire con il resto dell’ordine.'
+              : 'Attendi che il tuo ordine venga accettato prima di procedere al pagamento.'}
+        </p>
+      </div>
+
+      <div className="space-y-5 rounded-3xl border border-[#E8DFD1] bg-white p-5 shadow-md sm:p-8">
+        <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-[#E8DFD1] bg-[#FAF7F2] p-4 text-center sm:flex-row sm:text-left">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#7A8A7E]">Richiesta inviata alle</p>
+            <p className="font-display text-xl font-bold text-[#1C211E]">{createdAt}</p>
+          </div>
+          <div className="flex items-center gap-2 rounded-full bg-[#E1EAD8] px-4 py-2 text-sm font-bold text-[#1B3B2B]">
+            <Timer className="h-4 w-4" />
+            {countdown > 0 ? `${countdown}s` : 'In verifica'}
+          </div>
+        </div>
+
+        {order.status === 'NUOVO' && (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <Loader2 className="mt-0.5 h-5 w-5 shrink-0 animate-spin" />
+            <div>
+              <strong>Stiamo aspettando la conferma della rosticceria.</strong>
+              <p className="mt-1 text-xs leading-5">Il pagamento resterà bloccato fino all’accettazione dell’ordine. Non chiudere questa pagina.</p>
+            </div>
+          </div>
+        )}
+
+        {isMissingReview && (
+          <div className="space-y-4 rounded-2xl border border-orange-200 bg-orange-50 p-4 text-orange-950">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-700" />
+              <div>
+                <strong>{order.admin_message || 'Alcuni prodotti non sono disponibili.'}</strong>
+                <p className="mt-2 text-xs font-semibold">Prodotti segnalati: {missingNames.join(', ') || 'verifica richiesta dalla rosticceria'}</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                onClick={() => onDecision('accept')}
+                disabled={isChecking}
+                className="inline-flex min-h-[46px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#1B3B2B] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
+              >
+                <CheckCircle2 className="h-4 w-4" /> Prosegui con il resto
+              </button>
+              <button
+                onClick={() => onDecision('decline')}
+                disabled={isChecking}
+                className="inline-flex min-h-[46px] flex-1 items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-sm font-bold text-red-700 disabled:opacity-50"
+              >
+                <XCircle className="h-4 w-4" /> Annulla ordine
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isAccepted && (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+              <div>
+                <strong>La rosticceria ha accettato il tuo ordine.</strong>
+                <p className="mt-1 text-xs leading-5">
+                  {countdown > 0
+                    ? `Il pagamento sarà disponibile tra ${countdown} secondi.`
+                    : 'Ora puoi procedere al pagamento sicuro con Stripe.'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onPay}
+              disabled={!canPay || isStartingPayment}
+              className="mt-4 flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-[#1B3B2B] px-4 py-3 text-base font-bold text-white shadow-lg transition-all hover:bg-[#28553E] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isStartingPayment ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />}
+              {isStartingPayment ? 'Apertura pagamento…' : 'Procedi al pagamento'}
+            </button>
+          </div>
+        )}
+
+        {isCancelled && (
+          <button
+            onClick={onReset}
+            className="w-full rounded-xl bg-[#1B3B2B] px-4 py-3 text-sm font-bold text-white"
+          >
+            Torna alla vetrina
+          </button>
+        )}
+
+        {!isCancelled && (
+          <div className="border-t border-[#F0EBE1] pt-4 text-center text-xs text-[#7A8A7E]">
+            Totale attuale: <strong className="font-mono text-[#1B3B2B]">€{order.total.toFixed(2).replace('.', ',')}</strong>
+            {isChecking && <span className="ml-2">Aggiornamento in corso…</span>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   items,
   settings,
@@ -38,8 +188,50 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [generalNotes, setGeneralNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; phone?: string; deliveryAddress?: string }>({});
+  const [pendingOrder, setPendingOrder] = useState<Order | null>(loadPendingOrder);
+  const [countdown, setCountdown] = useState(0);
+  const [isCheckingOrder, setIsCheckingOrder] = useState(false);
+  const [isStartingPayment, setIsStartingPayment] = useState(false);
 
   const total = items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+
+  useEffect(() => {
+    if (!pendingOrder) {
+      setCountdown(0);
+      return;
+    }
+    const updateCountdown = () => {
+      const elapsed = Math.floor((Date.now() - new Date(pendingOrder.created_at).getTime()) / 1000);
+      setCountdown(Math.max(0, 60 - elapsed));
+    };
+    updateCountdown();
+    const timer = window.setInterval(updateCountdown, 1000);
+    return () => window.clearInterval(timer);
+  }, [pendingOrder?.id, pendingOrder?.created_at]);
+
+  useEffect(() => {
+    if (!pendingOrder?.customer_token || pendingOrder.status === 'ACCETTATO' || pendingOrder.status === 'ANNULLATO') return;
+    let active = true;
+    const refreshOrder = async () => {
+      try {
+        const response = await fetch(`/api/order-status?order_id=${encodeURIComponent(pendingOrder.id)}&token=${encodeURIComponent(pendingOrder.customer_token || '')}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!active || !data.order) return;
+        const nextOrder = data.order as Order;
+        StorageService.cacheOrder(nextOrder);
+        setPendingOrder(nextOrder);
+      } catch (error) {
+        console.warn('Stato ordine ancora in attesa:', error);
+      }
+    };
+    void refreshOrder();
+    const poller = window.setInterval(refreshOrder, 3500);
+    return () => {
+      active = false;
+      window.clearInterval(poller);
+    };
+  }, [pendingOrder?.id, pendingOrder?.customer_token, pendingOrder?.status]);
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -110,6 +302,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       }));
 
       // Create and persist order in database
+      const customerToken = window.crypto?.randomUUID?.() || `tok_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       const createdOrder = StorageService.createOrder({
         customer_name: name.trim(),
         customer_surname: surname.trim(),
@@ -125,33 +318,26 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         total: total,
         status: 'NUOVO',
         payment_status: 'pending',
+        customer_token: customerToken,
+        customer_response: 'pending',
         items: orderItems,
       });
-
-      // Stripe Checkout is created server-side. The server recalculates the total
-      // from the current product prices before creating the payment session.
-      const checkoutResponse = await fetch('/api/create-checkout-session', {
+      const orderResponse = await fetch('/api/create-order-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order: createdOrder }),
       });
-      const checkoutData = await checkoutResponse.json().catch(() => ({}));
-      if (!checkoutResponse.ok || !checkoutData.checkoutUrl) {
-        StorageService.updateOrder(createdOrder.id, { payment_status: 'failed' });
-        throw new Error(checkoutData.error || 'Pagamento Stripe non disponibile');
+      const orderData = await orderResponse.json().catch(() => ({}));
+      if (!orderResponse.ok || !orderData.order) {
+        throw new Error(orderData.error || 'Impossibile inviare la richiesta alla rosticceria');
       }
-
-      StorageService.updateOrder(createdOrder.id, {
-        payment_status: 'pending',
-        stripe_checkout_session_id: checkoutData.sessionId,
-      });
-
-      // Trigger callback
-      onOrderCompleted(createdOrder);
-      window.location.assign(checkoutData.checkoutUrl);
+      const persistedOrder = orderData.order as Order;
+      StorageService.cacheOrder(persistedOrder);
+      window.localStorage.setItem(PENDING_ORDER_STORAGE_KEY, persistedOrder.id);
+      setPendingOrder(persistedOrder);
     } catch (err: any) {
-      console.error('Error creating Stripe order:', err);
-      alert(err?.message || 'Si è verificato un errore durante l\'avvio del pagamento. Riprova.');
+      console.error('Error creating order request:', err);
+      alert(err?.message || 'Si è verificato un errore durante l’invio dell’ordine. Riprova.');
     } finally {
       setIsSubmitting(false);
     }
@@ -171,6 +357,67 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           Vai alla Vetrina
         </button>
       </div>
+    );
+  }
+
+  const handleOrderDecision = async (decision: 'accept' | 'decline') => {
+    if (!pendingOrder?.customer_token) return;
+    setIsCheckingOrder(true);
+    try {
+      const response = await fetch('/api/order-decision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: pendingOrder.id, token: pendingOrder.customer_token, decision }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.order) throw new Error(data.error || 'Impossibile aggiornare l’ordine');
+      StorageService.cacheOrder(data.order as Order);
+      setPendingOrder(data.order as Order);
+    } catch (error: any) {
+      alert(error?.message || 'Impossibile inviare la risposta alla rosticceria.');
+    } finally {
+      setIsCheckingOrder(false);
+    }
+  };
+
+  const handleStartPayment = async () => {
+    if (!pendingOrder?.customer_token || pendingOrder.status !== 'ACCETTATO' || countdown > 0) return;
+    setIsStartingPayment(true);
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: pendingOrder }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.checkoutUrl) throw new Error(data.error || 'Pagamento Stripe non disponibile');
+      const nextOrder = { ...pendingOrder, stripe_checkout_session_id: data.sessionId };
+      StorageService.cacheOrder(nextOrder);
+      onOrderCompleted(nextOrder);
+      window.location.assign(data.checkoutUrl);
+    } catch (error: any) {
+      alert(error?.message || 'Si è verificato un errore durante l’avvio del pagamento. Riprova.');
+    } finally {
+      setIsStartingPayment(false);
+    }
+  };
+
+  const resetPendingOrder = () => {
+    window.localStorage.removeItem(PENDING_ORDER_STORAGE_KEY);
+    setPendingOrder(null);
+  };
+
+  if (pendingOrder) {
+    return (
+      <PendingOrderPanel
+        order={pendingOrder}
+        countdown={countdown}
+        isChecking={isCheckingOrder}
+        isStartingPayment={isStartingPayment}
+        onDecision={handleOrderDecision}
+        onPay={handleStartPayment}
+        onReset={resetPendingOrder}
+      />
     );
   }
 
@@ -432,9 +679,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               className="w-full py-4 bg-[#1B3B2B] hover:bg-[#28553E] disabled:opacity-50 text-white font-bold text-sm sm:text-base rounded-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2 min-h-[50px]"
             >
               {isSubmitting ? (
-                <span>Avvio pagamento sicuro...</span>
+                <span>Invio richiesta alla rosticceria…</span>
               ) : (
-                <span>Paga</span>
+                <span>Invia richiesta ordine</span>
               )}
             </button>
           </div>

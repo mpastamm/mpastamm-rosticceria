@@ -13,6 +13,7 @@ import {
   Store,
   Truck,
   ExternalLink,
+  AlertTriangle,
 } from 'lucide-react';
 import { Order, OrderStatus } from '../../types';
 import { OrderStatusBadge } from '../../components/OrderStatusBadge';
@@ -21,10 +22,12 @@ import { generateDirectWhatsAppUrl } from '../../services/whatsapp';
 interface AdminOrdersPageProps {
   orders: Order[];
   onUpdateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  onUpdateOrder: (orderId: string, updates: Partial<Order>) => void;
 }
 
 const ALL_STATUSES: OrderStatus[] = [
   'NUOVO',
+  'IN ATTESA CLIENTE',
   'ACCETTATO',
   'IN PREPARAZIONE',
   'PRONTO',
@@ -35,11 +38,15 @@ const ALL_STATUSES: OrderStatus[] = [
 export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
   orders,
   onUpdateOrderStatus,
+  onUpdateOrder,
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<'today' | 'all'>('today');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [missingEditorOrderId, setMissingEditorOrderId] = useState<string | null>(null);
+  const [missingProductIds, setMissingProductIds] = useState<string[]>([]);
+  const [missingMessage, setMissingMessage] = useState('');
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -64,6 +71,23 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
 
   const toggleExpand = (id: string) => {
     setExpandedOrderId(expandedOrderId === id ? null : id);
+  };
+
+  const openMissingEditor = (order: Order) => {
+    setMissingEditorOrderId(order.id);
+    setMissingProductIds(order.missing_product_ids || []);
+    setMissingMessage(order.admin_message || '');
+  };
+
+  const submitMissingProducts = (order: Order) => {
+    if (missingProductIds.length === 0) return;
+    onUpdateOrder(order.id, {
+      status: 'IN ATTESA CLIENTE',
+      missing_product_ids: missingProductIds,
+      admin_message: missingMessage.trim() || 'Alcuni prodotti non sono disponibili. Vuoi proseguire con il resto dell’ordine?',
+      customer_response: 'pending',
+    });
+    setMissingEditorOrderId(null);
   };
 
   return (
@@ -307,6 +331,99 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
                         {order.payment_status === 'paid' ? 'Confermato con Stripe' : order.payment_status === 'failed' ? 'Non completato' : 'In attesa di Stripe'}
                       </span>
                     </div>
+
+                    {order.status === 'NUOVO' && (
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-3">
+                        <div>
+                          <h5 className="flex items-center gap-2 text-sm font-bold text-emerald-900">
+                            <Check className="w-4 h-4" /> Verifica disponibilità prima del pagamento
+                          </h5>
+                          <p className="mt-1 text-xs leading-relaxed text-emerald-800">
+                            Accetta l’ordine per sbloccare Stripe oppure segnala subito i prodotti mancanti al cliente.
+                          </p>
+                        </div>
+
+                        {missingEditorOrderId === order.id ? (
+                          <div className="space-y-3 rounded-xl border border-orange-200 bg-white p-3">
+                            <p className="text-xs font-bold text-orange-900">Seleziona i prodotti non disponibili</p>
+                            <div className="space-y-2">
+                              {order.items.map((item) => (
+                                <label key={item.id} className="flex items-center gap-2 text-sm text-[#1C211E]">
+                                  <input
+                                    type="checkbox"
+                                    checked={missingProductIds.includes(item.product_id)}
+                                    onChange={(event) => {
+                                      setMissingProductIds((current) => event.target.checked
+                                        ? [...current, item.product_id]
+                                        : current.filter((id) => id !== item.product_id));
+                                    }}
+                                    className="h-4 w-4 accent-[#1B3B2B]"
+                                  />
+                                  <span>{item.quantity}x {item.product_name_snapshot}</span>
+                                </label>
+                              ))}
+                            </div>
+                            <textarea
+                              rows={2}
+                              value={missingMessage}
+                              onChange={(event) => setMissingMessage(event.target.value)}
+                              placeholder="Messaggio per il cliente (opzionale)"
+                              className="w-full rounded-lg border border-[#D8C3A5] bg-[#FAF7F2] px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#1B3B2B]"
+                            />
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                onClick={() => setMissingEditorOrderId(null)}
+                                className="rounded-lg border border-[#D8C3A5] bg-white px-3 py-2 text-xs font-bold text-[#425046]"
+                              >
+                                Annulla
+                              </button>
+                              <button
+                                onClick={() => submitMissingProducts(order)}
+                                disabled={missingProductIds.length === 0}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-orange-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
+                              >
+                                <AlertTriangle className="h-3.5 w-3.5" /> Segnala al cliente
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => onUpdateOrder(order.id, {
+                                status: 'ACCETTATO',
+                                admin_message: undefined,
+                                missing_product_ids: [],
+                                customer_response: 'accepted',
+                              })}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B3B2B] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#28553E]"
+                            >
+                              <Check className="h-4 w-4" /> Accetta ordine
+                            </button>
+                            <button
+                              onClick={() => openMissingEditor(order)}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-orange-300 bg-orange-50 px-4 py-2.5 text-xs font-bold text-orange-800 hover:bg-orange-100"
+                            >
+                              <AlertTriangle className="h-4 w-4" /> Segnala prodotti mancanti
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {order.status === 'IN ATTESA CLIENTE' && (
+                      <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-900">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                          <div>
+                            <strong>In attesa della risposta del cliente</strong>
+                            <p className="mt-1 text-xs leading-relaxed">{order.admin_message}</p>
+                            <p className="mt-2 text-xs font-semibold">
+                              Prodotti segnalati: {(order.missing_product_ids || []).map((id) => order.items.find((item) => item.product_id === id)?.product_name_snapshot || id).join(', ')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Change Status Fast Buttons (Section 15: One touch) */}
                     <div>

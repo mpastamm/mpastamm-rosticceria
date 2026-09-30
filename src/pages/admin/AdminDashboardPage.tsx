@@ -32,7 +32,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   // Counters as requested in Section 14
   const countToday = todayOrders.length;
   const countToPrepare = todayOrders.filter(
-    (o) => o.status === 'NUOVO' || o.status === 'ACCETTATO' || o.status === 'IN PREPARAZIONE'
+    (o) => o.status === 'NUOVO' || o.status === 'IN ATTESA CLIENTE' || o.status === 'ACCETTATO' || o.status === 'IN PREPARAZIONE'
   ).length;
   const countReady = todayOrders.filter((o) => o.status === 'PRONTO').length;
   const countPickedUp = todayOrders.filter((o) => o.status === 'RITIRATO').length;
