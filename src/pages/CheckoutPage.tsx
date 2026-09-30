@@ -200,6 +200,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       setCountdown(0);
       return;
     }
+    if (pendingOrder.status === 'ACCETTATO' || pendingOrder.status === 'ANNULLATO') {
+      setCountdown(0);
+      return;
+    }
     const updateCountdown = () => {
       const elapsed = Math.floor((Date.now() - new Date(pendingOrder.created_at).getTime()) / 1000);
       setCountdown(Math.max(0, 60 - elapsed));
@@ -207,7 +211,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     updateCountdown();
     const timer = window.setInterval(updateCountdown, 1000);
     return () => window.clearInterval(timer);
-  }, [pendingOrder?.id, pendingOrder?.created_at]);
+  }, [pendingOrder?.id, pendingOrder?.created_at, pendingOrder?.status]);
 
   useEffect(() => {
     if (!pendingOrder?.customer_token || pendingOrder.status === 'ACCETTATO' || pendingOrder.status === 'ANNULLATO') return;
