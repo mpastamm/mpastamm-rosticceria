@@ -237,6 +237,30 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     };
   }, [pendingOrder?.id, pendingOrder?.customer_token, pendingOrder?.status]);
 
+  // Keep the checkout panel in sync immediately when the admin updates the
+  // order in another tab/device. Realtime/local-storage updates are faster
+  // than the polling fallback and make the acceptance message visible at once.
+  useEffect(() => {
+    if (!pendingOrder?.id) return;
+    const orderId = pendingOrder.id;
+    const unsubscribe = StorageService.subscribeToStore(() => {
+      const localOrder = StorageService.getOrderById(orderId);
+      if (!localOrder) return;
+
+      setPendingOrder((currentOrder) => {
+        if (!currentOrder || currentOrder.id !== orderId) return currentOrder;
+        const hasChanged =
+          localOrder.status !== currentOrder.status ||
+          localOrder.updated_at !== currentOrder.updated_at ||
+          localOrder.admin_message !== currentOrder.admin_message ||
+          localOrder.total !== currentOrder.total;
+        return hasChanged ? { ...currentOrder, ...localOrder } : currentOrder;
+      });
+    });
+
+    return () => unsubscribe();
+  }, [pendingOrder?.id]);
+
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
       setLocationError('La geolocalizzazione non è supportata da questo dispositivo. Inserisci l’indirizzo manualmente.');
