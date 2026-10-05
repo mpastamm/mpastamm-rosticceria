@@ -323,6 +323,7 @@ export default function App() {
           {currentPath === '/admin/ordini' && (
             <AdminOrdersPage
               orders={orders}
+              products={products}
               onUpdateOrderStatus={handleUpdateOrderStatus}
               onUpdateOrder={handleUpdateOrder}
             />
@@ -469,6 +470,7 @@ export default function App() {
         {currentPath === '/checkout' && (
           <CheckoutPage
             items={cartItems}
+            products={products}
             settings={settings}
             onOrderCompleted={(order) => {
               setLastPlacedOrder(order);

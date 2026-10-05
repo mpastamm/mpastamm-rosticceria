@@ -15,12 +15,13 @@ import {
   ExternalLink,
   AlertTriangle,
 } from 'lucide-react';
-import { Order, OrderStatus } from '../../types';
+import { Order, OrderStatus, Product } from '../../types';
 import { OrderStatusBadge } from '../../components/OrderStatusBadge';
 import { generateDirectWhatsAppUrl } from '../../services/whatsapp';
 
 interface AdminOrdersPageProps {
   orders: Order[];
+  products: Product[];
   onUpdateOrderStatus: (orderId: string, status: OrderStatus) => void;
   onUpdateOrder: (orderId: string, updates: Partial<Order>) => void;
 }
@@ -37,6 +38,7 @@ const ALL_STATUSES: OrderStatus[] = [
 
 export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
   orders,
+  products,
   onUpdateOrderStatus,
   onUpdateOrder,
 }) => {
@@ -46,6 +48,7 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [missingEditorOrderId, setMissingEditorOrderId] = useState<string | null>(null);
   const [missingProductIds, setMissingProductIds] = useState<string[]>([]);
+  const [alternativeProductIds, setAlternativeProductIds] = useState<string[]>([]);
   const [missingMessage, setMissingMessage] = useState('');
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -76,6 +79,7 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
   const openMissingEditor = (order: Order) => {
     setMissingEditorOrderId(order.id);
     setMissingProductIds(order.missing_product_ids || []);
+    setAlternativeProductIds(order.alternative_product_ids || []);
     setMissingMessage(order.admin_message || '');
   };
 
@@ -84,10 +88,62 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
     onUpdateOrder(order.id, {
       status: 'IN ATTESA CLIENTE',
       missing_product_ids: missingProductIds,
-      admin_message: missingMessage.trim() || 'Alcuni prodotti non sono disponibili. Vuoi proseguire con il resto dell’ordine?',
+      alternative_product_ids: alternativeProductIds,
+      customer_selected_alternative_product_ids: [],
+      admin_message: missingMessage.trim() || (alternativeProductIds.length > 0
+        ? 'Alcuni prodotti non sono disponibili. Scegli una delle alternative proposte oppure prosegui senza sostituzioni.'
+        : 'Alcuni prodotti non sono disponibili. Vuoi proseguire con il resto dell’ordine?'),
       customer_response: 'pending',
     });
     setMissingEditorOrderId(null);
+  };
+
+  const confirmCustomerAlternatives = (order: Order) => {
+    const selectedIds = order.customer_selected_alternative_product_ids || [];
+    const missingIds = new Set(order.missing_product_ids || []);
+    const selectedProducts = products.filter((product) => selectedIds.includes(product.id));
+    const remainingItems = order.items.filter((item) => !missingIds.has(item.product_id));
+    const replacementItems = selectedProducts.map((product, index) => ({
+      id: `item_alt_${order.id}_${product.id}_${index}`,
+      order_id: order.id,
+      product_id: product.id,
+      product_name_snapshot: product.name,
+      product_price_snapshot: product.price,
+      quantity: 1,
+      subtotal: product.price,
+      image_url_snapshot: product.image_url,
+    }));
+    const nextItems = [...remainingItems, ...replacementItems];
+    const nextTotal = Math.round(nextItems.reduce((sum, item) => sum + item.subtotal, 0) * 100) / 100;
+
+    onUpdateOrder(order.id, {
+      status: 'ACCETTATO',
+      items: nextItems,
+      subtotal: nextTotal,
+      total: nextTotal,
+      admin_message: undefined,
+      missing_product_ids: [],
+      alternative_product_ids: [],
+      customer_selected_alternative_product_ids: [],
+      customer_response: 'accepted',
+    });
+  };
+
+  const confirmOrderWithoutAlternatives = (order: Order) => {
+    const missingIds = new Set(order.missing_product_ids || []);
+    const nextItems = order.items.filter((item) => !missingIds.has(item.product_id));
+    const nextTotal = Math.round(nextItems.reduce((sum, item) => sum + item.subtotal, 0) * 100) / 100;
+    onUpdateOrder(order.id, {
+      status: 'ACCETTATO',
+      items: nextItems,
+      subtotal: nextTotal,
+      total: nextTotal,
+      admin_message: undefined,
+      missing_product_ids: [],
+      alternative_product_ids: [],
+      customer_selected_alternative_product_ids: [],
+      customer_response: 'accepted',
+    });
   };
 
   return (
@@ -184,6 +240,15 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
         ) : (
           filteredOrders.map((order) => {
             const isExpanded = expandedOrderId === order.id;
+            const alternativeCandidates = products.filter((product) =>
+              product.visible &&
+              product.availability_status !== 'sold_out' &&
+              product.availability_status !== 'hidden' &&
+              !order.items.some((item) => item.product_id === product.id),
+            );
+            const selectedAlternativeProducts = products.filter((product) =>
+              (order.customer_selected_alternative_product_ids || []).includes(product.id),
+            );
 
             return (
               <div
@@ -363,6 +428,26 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
                                 </label>
                               ))}
                             </div>
+                            {alternativeCandidates.length > 0 && (
+                              <div className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/60 p-3">
+                                <p className="text-xs font-bold text-emerald-900">Alternative che il cliente potrà scegliere</p>
+                                {alternativeCandidates.slice(0, 12).map((product) => (
+                                  <label key={product.id} className="flex items-center gap-2 text-sm text-emerald-950">
+                                    <input
+                                      type="checkbox"
+                                      checked={alternativeProductIds.includes(product.id)}
+                                      onChange={(event) => {
+                                        setAlternativeProductIds((current) => event.target.checked
+                                          ? [...current, product.id]
+                                          : current.filter((id) => id !== product.id));
+                                      }}
+                                      className="h-4 w-4 accent-[#1B3B2B]"
+                                    />
+                                    <span>{product.name} · €{product.price.toFixed(2).replace('.', ',')}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
                             <textarea
                               rows={2}
                               value={missingMessage}
@@ -393,6 +478,8 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
                                 status: 'ACCETTATO',
                                 admin_message: undefined,
                                 missing_product_ids: [],
+                                alternative_product_ids: [],
+                                customer_selected_alternative_product_ids: [],
                                 customer_response: 'accepted',
                               })}
                               className="inline-flex items-center gap-1.5 rounded-xl bg-[#1B3B2B] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#28553E]"
@@ -415,11 +502,36 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
                         <div className="flex items-start gap-2">
                           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                           <div>
-                            <strong>In attesa della risposta del cliente</strong>
+                            <strong>
+                              {order.customer_response === 'alternative_selected'
+                                ? 'Il cliente ha scelto una possibile alternativa'
+                                : 'In attesa della risposta del cliente'}
+                            </strong>
                             <p className="mt-1 text-xs leading-relaxed">{order.admin_message}</p>
                             <p className="mt-2 text-xs font-semibold">
                               Prodotti segnalati: {(order.missing_product_ids || []).map((id) => order.items.find((item) => item.product_id === id)?.product_name_snapshot || id).join(', ')}
                             </p>
+                            {selectedAlternativeProducts.length > 0 && (
+                              <p className="mt-2 text-xs font-semibold text-emerald-900">
+                                Alternative scelte: {selectedAlternativeProducts.map((product) => product.name).join(', ')}
+                              </p>
+                            )}
+                            {order.customer_response === 'alternative_selected' && selectedAlternativeProducts.length > 0 && (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <button
+                                  onClick={() => confirmCustomerAlternatives(order)}
+                                  className="rounded-lg bg-[#1B3B2B] px-3 py-2 text-xs font-bold text-white"
+                                >
+                                  Conferma alternative e accetta
+                                </button>
+                                <button
+                                  onClick={() => confirmOrderWithoutAlternatives(order)}
+                                  className="rounded-lg border border-[#D8C3A5] bg-white px-3 py-2 text-xs font-bold text-[#425046]"
+                                >
+                                  Accetta senza alternative
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

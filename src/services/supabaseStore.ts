@@ -109,7 +109,7 @@ export async function deleteRemoteProduct(id: string) {
 }
 
 export async function syncOrders(orders: Order[]) {
-  if (!isReady() || !supabase || orders.length === 0) return;
+  if (!isReady() || !supabase || orders.length === 0 || !(await hasAuthenticatedSession())) return;
   const { error: ordersError } = await supabase.from('orders').upsert(orders.map(withoutItems));
   if (ordersError) throw ordersError;
 
@@ -117,6 +117,29 @@ export async function syncOrders(orders: Order[]) {
   if (items.length > 0) {
     const { error: itemsError } = await supabase.from('order_items').upsert(items);
     if (itemsError) throw itemsError;
+  }
+
+  // Keep the remote snapshot consistent when an approved alternative replaces
+  // an unavailable item. Anonymous customers never reach this branch because
+  // the authenticated-session check above protects the admin write path.
+  for (const order of orders) {
+    const remoteItemsResult = await supabase
+      .from('order_items')
+      .select('id')
+      .eq('order_id', order.id);
+    if (remoteItemsResult.error) throw remoteItemsResult.error;
+
+    const currentItemIds = new Set(order.items.map((item) => item.id));
+    const staleItemIds = (remoteItemsResult.data || [])
+      .map((item) => item.id)
+      .filter((id) => !currentItemIds.has(id));
+    if (staleItemIds.length > 0) {
+      const { error: deleteItemsError } = await supabase
+        .from('order_items')
+        .delete()
+        .in('id', staleItemIds);
+      if (deleteItemsError) throw deleteItemsError;
+    }
   }
 }
 

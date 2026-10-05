@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Phone, User, FileText, MapPin, Store, Truck, Navigation, CreditCard, Timer, AlertTriangle, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
-import { CartItem, Order, BusinessSettings, FulfillmentMethod } from '../types';
+import { CartItem, Order, BusinessSettings, FulfillmentMethod, Product } from '../types';
 import { StorageService } from '../services/storage';
 
 interface CheckoutPageProps {
   items: CartItem[];
+  products: Product[];
   settings: BusinessSettings;
   onOrderCompleted: (order: Order) => void;
   onNavigate: (path: string) => void;
@@ -30,16 +31,18 @@ function loadPendingOrder(): Order | null {
 
 interface PendingOrderPanelProps {
   order: Order;
+  products: Product[];
   countdown: number;
   isChecking: boolean;
   isStartingPayment: boolean;
-  onDecision: (decision: 'accept' | 'decline') => void;
+  onDecision: (decision: 'accept' | 'decline' | 'alternative', alternativeProductIds?: string[]) => void;
   onPay: () => void;
   onReset: () => void;
 }
 
 const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
   order,
+  products,
   countdown,
   isChecking,
   isStartingPayment,
@@ -50,10 +53,21 @@ const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
   const isMissingReview = order.status === 'IN ATTESA CLIENTE';
   const isAccepted = order.status === 'ACCETTATO';
   const isCancelled = order.status === 'ANNULLATO';
+  const hasSubmittedAlternative = order.customer_response === 'alternative_selected';
   const canPay = isAccepted && countdown === 0;
   const missingNames = (order.missing_product_ids || [])
     .map((id) => order.items.find((item) => item.product_id === id)?.product_name_snapshot)
     .filter(Boolean);
+  const alternativeProducts = products.filter((product) =>
+    (order.alternative_product_ids || []).includes(product.id),
+  );
+  const [selectedAlternativeIds, setSelectedAlternativeIds] = useState<string[]>(
+    order.customer_selected_alternative_product_ids || [],
+  );
+
+  useEffect(() => {
+    setSelectedAlternativeIds(order.customer_selected_alternative_product_ids || []);
+  }, [order.id, (order.customer_selected_alternative_product_ids || []).join(',')]);
   const createdAt = new Date(order.created_at).toLocaleTimeString('it-IT', {
     hour: '2-digit',
     minute: '2-digit',
@@ -72,7 +86,9 @@ const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
           {isCancelled
             ? 'La richiesta è stata annullata. Puoi tornare alla vetrina e creare un nuovo ordine.'
             : isMissingReview
-              ? 'La rosticceria ha segnalato alcuni prodotti non disponibili. Scegli se proseguire con il resto dell’ordine.'
+              ? hasSubmittedAlternative
+                ? 'La tua scelta è stata inviata. Attendi la conferma finale della rosticceria.'
+                : 'La rosticceria ha segnalato alcuni prodotti non disponibili. Scegli una risposta qui sotto.'
               : 'Attendi che il tuo ordine venga accettato prima di procedere al pagamento.'}
         </p>
       </div>
@@ -85,7 +101,7 @@ const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
           </div>
           <div className="flex items-center gap-2 rounded-full bg-[#E1EAD8] px-4 py-2 text-sm font-bold text-[#1B3B2B]">
             <Timer className="h-4 w-4" />
-            {countdown > 0 ? `${countdown}s` : 'In verifica'}
+            {isAccepted ? 'Pronto al pagamento' : countdown > 0 ? `${countdown}s` : 'In verifica'}
           </div>
         </div>
 
@@ -104,17 +120,60 @@ const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-700" />
               <div>
-                <strong>{order.admin_message || 'Alcuni prodotti non sono disponibili.'}</strong>
+                <div className="flex items-center gap-2">
+                  <strong>Assistente ordine</strong>
+                  <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-800">Mpastamm</span>
+                </div>
+                <p className="mt-1 font-semibold">{order.admin_message || 'Alcuni prodotti non sono disponibili.'}</p>
                 <p className="mt-2 text-xs font-semibold">Prodotti segnalati: {missingNames.join(', ') || 'verifica richiesta dalla rosticceria'}</p>
               </div>
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
+
+            {alternativeProducts.length > 0 && (
+              <div className="rounded-xl border border-emerald-200 bg-white/80 p-3">
+                <p className="text-xs font-bold uppercase tracking-wide text-emerald-900">Scegli un’alternativa disponibile</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {alternativeProducts.map((product) => {
+                    const selected = selectedAlternativeIds.includes(product.id);
+                    return (
+                      <button
+                        key={product.id}
+                        type="button"
+                        onClick={() => setSelectedAlternativeIds((current) => selected
+                          ? current.filter((id) => id !== product.id)
+                          : [...current, product.id])}
+                        className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-bold transition-colors ${selected
+                          ? 'border-[#1B3B2B] bg-[#E1EAD8] text-[#1B3B2B]'
+                          : 'border-[#D8C3A5] bg-white text-[#425046] hover:border-[#1B3B2B]'}`}
+                      >
+                        <span>{product.name}</span>
+                        <span>€{product.price.toFixed(2).replace('.', ',')}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {hasSubmittedAlternative && (
+                  <p className="mt-2 text-xs font-semibold text-emerald-800">Scelta inviata. La rosticceria deve confermarla prima del pagamento.</p>
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              {alternativeProducts.length > 0 && (
+                <button
+                  onClick={() => onDecision('alternative', selectedAlternativeIds)}
+                  disabled={isChecking || selectedAlternativeIds.length === 0}
+                  className="inline-flex min-h-[46px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#1B3B2B] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Invia la mia scelta
+                </button>
+              )}
               <button
                 onClick={() => onDecision('accept')}
                 disabled={isChecking}
-                className="inline-flex min-h-[46px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#1B3B2B] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
+                className="inline-flex min-h-[46px] flex-1 items-center justify-center gap-2 rounded-xl border border-[#1B3B2B] bg-white px-4 py-3 text-sm font-bold text-[#1B3B2B] disabled:opacity-50"
               >
-                <CheckCircle2 className="h-4 w-4" /> Prosegui con il resto
+                <CheckCircle2 className="h-4 w-4" /> Continua senza sostituzioni
               </button>
               <button
                 onClick={() => onDecision('decline')}
@@ -173,6 +232,7 @@ const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
 
 export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   items,
+  products,
   settings,
   onOrderCompleted,
   onNavigate,
@@ -253,7 +313,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           localOrder.status !== currentOrder.status ||
           localOrder.updated_at !== currentOrder.updated_at ||
           localOrder.admin_message !== currentOrder.admin_message ||
-          localOrder.total !== currentOrder.total;
+          localOrder.total !== currentOrder.total ||
+          (localOrder.customer_selected_alternative_product_ids || []).join(',') !==
+            (currentOrder.customer_selected_alternative_product_ids || []).join(',');
         return hasChanged ? { ...currentOrder, ...localOrder } : currentOrder;
       });
     });
@@ -388,14 +450,22 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     );
   }
 
-  const handleOrderDecision = async (decision: 'accept' | 'decline') => {
+  const handleOrderDecision = async (
+    decision: 'accept' | 'decline' | 'alternative',
+    alternativeProductIds: string[] = [],
+  ) => {
     if (!pendingOrder?.customer_token) return;
     setIsCheckingOrder(true);
     try {
       const response = await fetch('/api/order-decision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order_id: pendingOrder.id, token: pendingOrder.customer_token, decision }),
+        body: JSON.stringify({
+          order_id: pendingOrder.id,
+          token: pendingOrder.customer_token,
+          decision,
+          alternative_product_ids: alternativeProductIds,
+        }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.order) throw new Error(data.error || 'Impossibile aggiornare l’ordine');
@@ -439,6 +509,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     return (
       <PendingOrderPanel
         order={pendingOrder}
+        products={products}
         countdown={countdown}
         isChecking={isCheckingOrder}
         isStartingPayment={isStartingPayment}

@@ -47,7 +47,7 @@ export type FulfillmentMethod = 'pickup' | 'delivery';
 
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 
-export type CustomerOrderResponse = 'pending' | 'accepted' | 'declined';
+export type CustomerOrderResponse = 'pending' | 'accepted' | 'declined' | 'alternative_selected';
 
 export interface OrderItem {
   id: string;
@@ -81,6 +81,8 @@ export interface Order {
   customer_token?: string;
   admin_message?: string;
   missing_product_ids?: string[];
+  alternative_product_ids?: string[];
+  customer_selected_alternative_product_ids?: string[];
   customer_response?: CustomerOrderResponse;
   stripe_checkout_session_id?: string;
   stripe_payment_intent_id?: string;

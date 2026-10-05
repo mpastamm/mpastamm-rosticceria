@@ -64,6 +64,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
       customer_response: 'pending',
       admin_message: null,
       missing_product_ids: [],
+      alternative_product_ids: [],
+      customer_selected_alternative_product_ids: [],
       stripe_checkout_session_id: null,
       stripe_payment_intent_id: null,
       paid_at: null,

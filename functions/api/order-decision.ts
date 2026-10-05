@@ -31,7 +31,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     const orderId = clean(body.order_id);
     const token = clean(body.token);
     const decision = clean(body.decision);
-    if (!orderId || !token || !['accept', 'decline'].includes(decision)) {
+    if (!orderId || !token || !['accept', 'decline', 'alternative'].includes(decision)) {
       return json({ error: 'Risposta ordine non valida' }, 400);
     }
 
@@ -40,12 +40,37 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
       throw new Error('Questo ordine non richiede una risposta del cliente');
     }
 
-    if (decision === 'decline') {
+    if (decision === 'alternative') {
+      const allowedAlternativeIds = new Set(
+        (Array.isArray(order.alternative_product_ids) ? order.alternative_product_ids : [])
+          .map(safeId)
+          .filter(Boolean),
+      );
+      const selectedAlternativeIds = [...new Set(
+        (Array.isArray(body.alternative_product_ids) ? body.alternative_product_ids : [])
+          .map(safeId)
+          .filter((id: string) => id && allowedAlternativeIds.has(id)),
+      )].slice(0, 10);
+
+      if (selectedAlternativeIds.length === 0) {
+        throw new Error('Seleziona almeno un’alternativa disponibile');
+      }
+
+      await supabaseRequest(context.env, `orders?id=eq.${encodeURIComponent(order.id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          customer_response: 'alternative_selected',
+          customer_selected_alternative_product_ids: selectedAlternativeIds,
+          updated_at: new Date().toISOString(),
+        }),
+      });
+    } else if (decision === 'decline') {
       await supabaseRequest(context.env, `orders?id=eq.${encodeURIComponent(order.id)}`, {
         method: 'PATCH',
         body: JSON.stringify({
           status: 'ANNULLATO',
           customer_response: 'declined',
+          customer_selected_alternative_product_ids: [],
           updated_at: new Date().toISOString(),
         }),
       });
@@ -65,6 +90,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
             status: 'ANNULLATO',
             customer_response: 'declined',
             admin_message: 'Tutti i prodotti richiesti risultano momentaneamente non disponibili.',
+            alternative_product_ids: [],
+            customer_selected_alternative_product_ids: [],
             updated_at: new Date().toISOString(),
           }),
         });
@@ -87,6 +114,8 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
             subtotal: total,
             total,
             missing_product_ids: [],
+            alternative_product_ids: [],
+            customer_selected_alternative_product_ids: [],
             admin_message: null,
             updated_at: new Date().toISOString(),
           }),
