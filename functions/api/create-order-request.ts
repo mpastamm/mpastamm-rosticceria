@@ -10,9 +10,14 @@ function asMoney(value: unknown): number {
   return Number.isFinite(amount) && amount >= 0 ? Math.round(amount * 100) / 100 : 0;
 }
 
+function createServerOrderNumber(): string {
+  const suffix = crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase();
+  return `MP-${suffix}`;
+}
+
 function validateOrder(order: any) {
   if (!order || typeof order !== 'object') throw new Error('Ordine mancante');
-  for (const field of ['id', 'order_number', 'customer_name', 'customer_phone', 'pickup_date', 'pickup_time', 'customer_token']) {
+  for (const field of ['id', 'customer_name', 'customer_phone', 'pickup_date', 'pickup_time', 'customer_token']) {
     if (typeof order[field] !== 'string' || !order[field].trim()) throw new Error(`Campo ordine mancante: ${field}`);
   }
   if (!Array.isArray(order.items) || order.items.length === 0) throw new Error('Il carrello è vuoto');
@@ -30,6 +35,18 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     const body = await readJson(context.request);
     const order = body.order;
     validateOrder(order);
+
+    // The order number previously came from localStorage. Two phones could
+    // therefore generate the same MP-00xx value and hit the UNIQUE constraint
+    // in Supabase. Reuse an existing server number on retries, otherwise make
+    // a new server-side value that is independent of any browser cache.
+    const existingOrders = await supabaseRequest(
+      context.env,
+      `orders?select=id,order_number&id=eq.${encodeURIComponent(String(order.id))}&limit=1`,
+      { method: 'GET' },
+    );
+    const existingOrder = Array.isArray(existingOrders) ? existingOrders[0] : null;
+    const serverOrderNumber = existingOrder?.order_number || createServerOrderNumber();
 
     const productIds = [...new Set(order.items.map((item: any) => cleanProductId(item.product_id)).filter(Boolean))];
     if (productIds.length !== order.items.length) throw new Error('Prodotto non valido nel carrello');
@@ -60,6 +77,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     const total = Math.round(authoritativeItems.reduce((sum: number, item: any) => sum + item.subtotal, 0) * 100) / 100;
     const serverOrder = {
       ...order,
+      order_number: serverOrderNumber,
       subtotal: total,
       total,
       status: 'NUOVO',

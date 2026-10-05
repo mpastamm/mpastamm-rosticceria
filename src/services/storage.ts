@@ -905,7 +905,11 @@ export class StorageService {
     const orders = this.getOrders();
     const nextNum = (orders.length + 49).toString().padStart(4, '0');
     const orderNumber = `MP-${nextNum}`;
-    const id = `ord_${Date.now()}`;
+    // The browser-side number is only a temporary display value. The server
+    // assigns the final order number before saving to Supabase. The ID must
+    // still be globally unique because customers can order from different
+    // phones at the same time.
+    const id = `ord_${globalThis.crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2)}`}`;
 
     const newOrder: Order = {
       ...orderInput,
