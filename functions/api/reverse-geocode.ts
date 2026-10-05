@@ -61,9 +61,12 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     return json({ ...address, latitude, longitude });
   } catch (error: any) {
     console.error('Reverse geocode error:', error);
-    const message = error?.message || 'Impossibile ottenere l’indirizzo della posizione';
-    const status = message.startsWith('Configurazione server mancante') ? 503 : 400;
+    const rawMessage = error?.message || 'Impossibile ottenere l’indirizzo della posizione';
+    const missingConfiguration = rawMessage.startsWith('Configurazione server mancante');
+    const message = missingConfiguration
+      ? 'Il rilevamento automatico degli indirizzi non è ancora configurato. Inserisci via, numero civico e città manualmente.'
+      : rawMessage;
+    const status = missingConfiguration ? 503 : 400;
     return json({ error: message }, status);
   }
 }
-
