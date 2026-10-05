@@ -15,13 +15,14 @@ import {
   ExternalLink,
   AlertTriangle,
 } from 'lucide-react';
-import { Order, OrderStatus, Product } from '../../types';
+import { Category, Order, OrderStatus, Product } from '../../types';
 import { OrderStatusBadge } from '../../components/OrderStatusBadge';
 import { generateDirectWhatsAppUrl } from '../../services/whatsapp';
 
 interface AdminOrdersPageProps {
   orders: Order[];
   products: Product[];
+  categories: Category[];
   onUpdateOrderStatus: (orderId: string, status: OrderStatus) => void;
   onUpdateOrder: (orderId: string, updates: Partial<Order>) => void;
 }
@@ -39,6 +40,7 @@ const ALL_STATUSES: OrderStatus[] = [
 export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
   orders,
   products,
+  categories,
   onUpdateOrderStatus,
   onUpdateOrder,
 }) => {
@@ -50,6 +52,26 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
   const [missingProductIds, setMissingProductIds] = useState<string[]>([]);
   const [alternativeProductIds, setAlternativeProductIds] = useState<string[]>([]);
   const [missingMessage, setMissingMessage] = useState('');
+
+  const getAlternativeCandidates = (order: Order) => {
+    const activeMissingIds = missingEditorOrderId === order.id
+      ? missingProductIds
+      : (order.missing_product_ids || []);
+    const missingCategoryIds = new Set(
+      order.items
+        .filter((item) => activeMissingIds.includes(item.product_id))
+        .map((item) => products.find((product) => product.id === item.product_id)?.category_id)
+        .filter((categoryId): categoryId is string => Boolean(categoryId)),
+    );
+
+    return products.filter((product) =>
+      product.visible &&
+      product.availability_status !== 'sold_out' &&
+      product.availability_status !== 'hidden' &&
+      missingCategoryIds.has(product.category_id) &&
+      !order.items.some((item) => item.product_id === product.id),
+    );
+  };
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -85,12 +107,14 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
 
   const submitMissingProducts = (order: Order) => {
     if (missingProductIds.length === 0) return;
+    const allowedAlternativeIds = new Set(getAlternativeCandidates(order).map((product) => product.id));
+    const validAlternativeProductIds = alternativeProductIds.filter((id) => allowedAlternativeIds.has(id));
     onUpdateOrder(order.id, {
       status: 'IN ATTESA CLIENTE',
       missing_product_ids: missingProductIds,
-      alternative_product_ids: alternativeProductIds,
+      alternative_product_ids: validAlternativeProductIds,
       customer_selected_alternative_product_ids: [],
-      admin_message: missingMessage.trim() || (alternativeProductIds.length > 0
+      admin_message: missingMessage.trim() || (validAlternativeProductIds.length > 0
         ? 'Alcuni prodotti non sono disponibili. Scegli una delle alternative proposte oppure prosegui senza sostituzioni.'
         : 'Alcuni prodotti non sono disponibili. Vuoi proseguire con il resto dell’ordine?'),
       customer_response: 'pending',
@@ -240,12 +264,13 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
         ) : (
           filteredOrders.map((order) => {
             const isExpanded = expandedOrderId === order.id;
-            const alternativeCandidates = products.filter((product) =>
-              product.visible &&
-              product.availability_status !== 'sold_out' &&
-              product.availability_status !== 'hidden' &&
-              !order.items.some((item) => item.product_id === product.id),
-            );
+            const alternativeCandidates = getAlternativeCandidates(order);
+            const alternativeGroups = categories
+              .map((category) => ({
+                category,
+                products: alternativeCandidates.filter((product) => product.category_id === category.id),
+              }))
+              .filter((group) => group.products.length > 0);
             const selectedAlternativeProducts = products.filter((product) =>
               (order.customer_selected_alternative_product_ids || []).includes(product.id),
             );
@@ -430,22 +455,31 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({
                             </div>
                             {alternativeCandidates.length > 0 && (
                               <div className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/60 p-3">
-                                <p className="text-xs font-bold text-emerald-900">Alternative che il cliente potrà scegliere</p>
-                                {alternativeCandidates.slice(0, 12).map((product) => (
-                                  <label key={product.id} className="flex items-center gap-2 text-sm text-emerald-950">
-                                    <input
-                                      type="checkbox"
-                                      checked={alternativeProductIds.includes(product.id)}
-                                      onChange={(event) => {
-                                        setAlternativeProductIds((current) => event.target.checked
-                                          ? [...current, product.id]
-                                          : current.filter((id) => id !== product.id));
-                                      }}
-                                      className="h-4 w-4 accent-[#1B3B2B]"
-                                    />
-                                    <span>{product.name} · €{product.price.toFixed(2).replace('.', ',')}</span>
-                                  </label>
-                                ))}
+                                <p className="text-xs font-bold text-emerald-900">Alternative disponibili nella stessa categoria</p>
+                                <div className="space-y-3">
+                                  {alternativeGroups.map((group) => (
+                                    <div key={group.category.id}>
+                                      <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-emerald-800">{group.category.name}</p>
+                                      <div className="space-y-1">
+                                        {group.products.slice(0, 12).map((product) => (
+                                          <label key={product.id} className="flex items-center gap-2 text-sm text-emerald-950">
+                                            <input
+                                              type="checkbox"
+                                              checked={alternativeProductIds.includes(product.id)}
+                                              onChange={(event) => {
+                                                setAlternativeProductIds((current) => event.target.checked
+                                                  ? [...current, product.id]
+                                                  : current.filter((id) => id !== product.id));
+                                              }}
+                                              className="h-4 w-4 accent-[#1B3B2B]"
+                                            />
+                                            <span>{product.name} · €{product.price.toFixed(2).replace('.', ',')}</span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             )}
                             <textarea

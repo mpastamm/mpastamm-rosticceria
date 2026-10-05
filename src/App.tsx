@@ -324,6 +324,7 @@ export default function App() {
             <AdminOrdersPage
               orders={orders}
               products={products}
+              categories={categories}
               onUpdateOrderStatus={handleUpdateOrderStatus}
               onUpdateOrder={handleUpdateOrder}
             />
@@ -471,6 +472,7 @@ export default function App() {
           <CheckoutPage
             items={cartItems}
             products={products}
+            categories={categories}
             settings={settings}
             onOrderCompleted={(order) => {
               setLastPlacedOrder(order);

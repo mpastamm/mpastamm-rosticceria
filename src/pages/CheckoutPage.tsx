@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Phone, User, FileText, MapPin, Store, Truck, Navigation, CreditCard, Timer, AlertTriangle, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
-import { CartItem, Order, BusinessSettings, FulfillmentMethod, Product } from '../types';
+import { CartItem, Order, BusinessSettings, FulfillmentMethod, Product, Category } from '../types';
 import { StorageService } from '../services/storage';
 
 interface CheckoutPageProps {
   items: CartItem[];
   products: Product[];
+  categories: Category[];
   settings: BusinessSettings;
   onOrderCompleted: (order: Order) => void;
   onNavigate: (path: string) => void;
@@ -46,6 +47,7 @@ function loadPendingOrder(): Order | null {
 interface PendingOrderPanelProps {
   order: Order;
   products: Product[];
+  categories: Category[];
   countdown: number;
   isChecking: boolean;
   isStartingPayment: boolean;
@@ -57,6 +59,7 @@ interface PendingOrderPanelProps {
 const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
   order,
   products,
+  categories,
   countdown,
   isChecking,
   isStartingPayment,
@@ -75,6 +78,12 @@ const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
   const alternativeProducts = products.filter((product) =>
     (order.alternative_product_ids || []).includes(product.id),
   );
+  const alternativeGroups = categories
+    .map((category) => ({
+      category,
+      products: alternativeProducts.filter((product) => product.category_id === category.id),
+    }))
+    .filter((group) => group.products.length > 0);
   const [selectedAlternativeIds, setSelectedAlternativeIds] = useState<string[]>(
     order.customer_selected_alternative_product_ids || [],
   );
@@ -143,28 +152,35 @@ const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
               </div>
             </div>
 
-            {alternativeProducts.length > 0 && (
+            {alternativeGroups.length > 0 && (
               <div className="rounded-xl border border-emerald-200 bg-white/80 p-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-emerald-900">Scegli un’alternativa disponibile</p>
-                <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                  {alternativeProducts.map((product) => {
-                    const selected = selectedAlternativeIds.includes(product.id);
-                    return (
-                      <button
-                        key={product.id}
-                        type="button"
-                        onClick={() => setSelectedAlternativeIds((current) => selected
-                          ? current.filter((id) => id !== product.id)
-                          : [...current, product.id])}
-                        className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-bold transition-colors ${selected
-                          ? 'border-[#1B3B2B] bg-[#E1EAD8] text-[#1B3B2B]'
-                          : 'border-[#D8C3A5] bg-white text-[#425046] hover:border-[#1B3B2B]'}`}
-                      >
-                        <span>{product.name}</span>
-                        <span>€{product.price.toFixed(2).replace('.', ',')}</span>
-                      </button>
-                    );
-                  })}
+                <p className="text-xs font-bold uppercase tracking-wide text-emerald-900">Scegli un’alternativa della stessa categoria</p>
+                <div className="mt-3 space-y-3">
+                  {alternativeGroups.map((group) => (
+                    <div key={group.category.id}>
+                      <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-[#55705D]">Alternative {group.category.name}</p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {group.products.map((product) => {
+                          const selected = selectedAlternativeIds.includes(product.id);
+                          return (
+                            <button
+                              key={product.id}
+                              type="button"
+                              onClick={() => setSelectedAlternativeIds((current) => selected
+                                ? current.filter((id) => id !== product.id)
+                                : [...current, product.id])}
+                              className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-bold transition-colors ${selected
+                                ? 'border-[#1B3B2B] bg-[#E1EAD8] text-[#1B3B2B]'
+                                : 'border-[#D8C3A5] bg-white text-[#425046] hover:border-[#1B3B2B]'}`}
+                            >
+                              <span>{product.name}</span>
+                              <span>€{product.price.toFixed(2).replace('.', ',')}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
                 {hasSubmittedAlternative && (
                   <p className="mt-2 text-xs font-semibold text-emerald-800">Scelta inviata. La rosticceria deve confermarla prima del pagamento.</p>
@@ -173,7 +189,7 @@ const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
             )}
 
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              {alternativeProducts.length > 0 && (
+              {alternativeGroups.length > 0 && (
                 <button
                   onClick={() => onDecision('alternative', selectedAlternativeIds)}
                   disabled={isChecking || selectedAlternativeIds.length === 0}
@@ -247,6 +263,7 @@ const PendingOrderPanel: React.FC<PendingOrderPanelProps> = ({
 export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   items,
   products,
+  categories,
   settings,
   onOrderCompleted,
   onNavigate,
@@ -582,6 +599,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       <PendingOrderPanel
         order={pendingOrder}
         products={products}
+        categories={categories}
         countdown={countdown}
         isChecking={isCheckingOrder}
         isStartingPayment={isStartingPayment}
