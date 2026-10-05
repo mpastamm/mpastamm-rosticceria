@@ -1,6 +1,7 @@
 export type FunctionEnv = {
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
+  GOOGLE_MAPS_API_KEY?: string;
   SUPABASE_URL?: string;
   SUPABASE_SERVICE_ROLE_KEY?: string;
   APP_URL?: string;
@@ -143,7 +144,7 @@ export function formatOrderMessage(order: any, items: any[]): string {
     `${isDelivery ? '*Consegna:*' : '*Ritiro:*'}\nOggi`;
   if (isDelivery) {
     message += `\n\n*Indirizzo consegna:*\n${order.delivery_address || 'Non indicato'}`;
-    if (mapsUrl) message += `\n*Posizione GPS:*\n${mapsUrl}`;
+    if (mapsUrl) message += `\n*Apri posizione sulla mappa:*\n${mapsUrl}`;
   }
   if (order.notes) message += `\n\n*Note:*\n${order.notes}`;
   return message;

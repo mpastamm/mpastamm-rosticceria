@@ -7,6 +7,7 @@ import { onRequestGet as getStripeSession } from './functions/api/stripe-session
 import { onRequestGet as getOrderStatus } from './functions/api/order-status';
 import { onRequestPost as decideOrder } from './functions/api/order-decision';
 import { onRequestPost as createOrderRequest } from './functions/api/create-order-request';
+import { onRequestPost as reverseGeocode } from './functions/api/reverse-geocode';
 
 dotenv.config();
 
@@ -84,6 +85,20 @@ app.post('/api/create-order-request', async (req: Request, res: Response) => {
     res.status(response.status).type('application/json').send(await response.text());
   } catch (error: any) {
     res.status(500).json({ error: error?.message || 'Errore invio richiesta ordine' });
+  }
+});
+
+app.post('/api/reverse-geocode', async (req: Request, res: Response) => {
+  try {
+    const request = new globalThis.Request(`http://${req.headers.host || 'localhost:3000'}/api/reverse-geocode`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+    });
+    const response = await reverseGeocode({ request, env: process.env });
+    res.status(response.status).type('application/json').send(await response.text());
+  } catch (error: any) {
+    res.status(500).json({ error: error?.message || 'Errore ricerca indirizzo' });
   }
 });
 

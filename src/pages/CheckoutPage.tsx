@@ -22,6 +22,20 @@ function formatLocalTime(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+type DeliveryAddressMode = 'manual' | 'current';
+
+function composeManualDeliveryAddress(
+  street: string,
+  houseNumber: string,
+  postalCode: string,
+  city: string,
+  details: string,
+): string {
+  const streetLine = [street.trim(), houseNumber.trim()].filter(Boolean).join(' ');
+  const localityLine = [postalCode.trim(), city.trim()].filter(Boolean).join(' ');
+  return [streetLine, localityLine, details.trim()].filter(Boolean).join(', ');
+}
+
 const PENDING_ORDER_STORAGE_KEY = 'mpastamm_pending_customer_order_v1';
 
 function loadPendingOrder(): Order | null {
@@ -241,7 +255,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const [surname, setSurname] = useState('');
   const [phone, setPhone] = useState('');
   const [fulfillmentMethod, setFulfillmentMethod] = useState<FulfillmentMethod>('pickup');
+  const [deliveryAddressMode, setDeliveryAddressMode] = useState<DeliveryAddressMode>('manual');
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryStreet, setDeliveryStreet] = useState('');
+  const [deliveryHouseNumber, setDeliveryHouseNumber] = useState('');
+  const [deliveryPostalCode, setDeliveryPostalCode] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('');
+  const [deliveryDetails, setDeliveryDetails] = useState('');
   const [deliveryCoordinates, setDeliveryCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
@@ -323,6 +343,18 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     return () => unsubscribe();
   }, [pendingOrder?.id]);
 
+  const clearDeliveryError = () => {
+    if (errors.deliveryAddress) setErrors({ ...errors, deliveryAddress: undefined });
+  };
+
+  const switchToManualDeliveryAddress = () => {
+    setDeliveryAddressMode('manual');
+    setDeliveryCoordinates(null);
+    setDeliveryAddress('');
+    setLocationError('');
+    clearDeliveryError();
+  };
+
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
       setLocationError('La geolocalizzazione non è supportata da questo dispositivo. Inserisci l’indirizzo manualmente.');
@@ -332,14 +364,39 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     setIsLocating(true);
     setLocationError('');
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setDeliveryCoordinates({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-        setIsLocating(false);
+      async (position) => {
+        const coordinates = {
+          latitude: Number(position.coords.latitude.toFixed(7)),
+          longitude: Number(position.coords.longitude.toFixed(7)),
+        };
+
+        try {
+          const response = await fetch('/api/reverse-geocode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(coordinates),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.address) {
+            throw new Error(data.error || 'Non è stato possibile trasformare la posizione in un indirizzo.');
+          }
+
+          setDeliveryAddressMode('current');
+          setDeliveryCoordinates(coordinates);
+          setDeliveryAddress(String(data.address));
+          setLocationError('');
+          clearDeliveryError();
+        } catch (error: any) {
+          setDeliveryCoordinates(null);
+          setDeliveryAddress('');
+          setLocationError(error?.message || 'Posizione rilevata, ma non è stato possibile trovare la strada. Inserisci l’indirizzo manualmente.');
+        } finally {
+          setIsLocating(false);
+        }
       },
       () => {
+        setDeliveryCoordinates(null);
+        setDeliveryAddress('');
         setLocationError('Non è stato possibile ottenere la posizione. Consenti l’accesso oppure inserisci l’indirizzo manualmente.');
         setIsLocating(false);
       },
@@ -357,8 +414,23 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     else if (phone.replace(/[^0-9]/g, '').length < 8) {
       newErrors.phone = 'Inserisci un recapito telefonico valido';
     }
-    if (fulfillmentMethod === 'delivery' && !deliveryAddress.trim() && !deliveryCoordinates) {
-      newErrors.deliveryAddress = 'Inserisci l’indirizzo oppure usa il pulsante per condividere la posizione.';
+    const finalDeliveryAddress = deliveryAddressMode === 'current'
+      ? [deliveryAddress.trim(), deliveryDetails.trim()].filter(Boolean).join(', ')
+      : composeManualDeliveryAddress(
+        deliveryStreet,
+        deliveryHouseNumber,
+        deliveryPostalCode,
+        deliveryCity,
+        deliveryDetails,
+      );
+    if (fulfillmentMethod === 'delivery' && (
+      !finalDeliveryAddress ||
+      (deliveryAddressMode === 'manual' && (!deliveryStreet.trim() || !deliveryHouseNumber.trim() || !deliveryCity.trim())) ||
+      (deliveryAddressMode === 'current' && !deliveryCoordinates)
+    )) {
+      newErrors.deliveryAddress = deliveryAddressMode === 'current'
+        ? 'Conferma la posizione per ottenere una strada reale oppure inserisci l’indirizzo manualmente.'
+        : 'Inserisci via, numero civico e città per permettere al driver di trovare la consegna.';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -398,7 +470,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         customer_surname: surname.trim(),
         customer_phone: phone.trim(),
         fulfillment_method: fulfillmentMethod,
-        delivery_address: deliveryAddress.trim() || undefined,
+        delivery_address: finalDeliveryAddress || undefined,
         delivery_latitude: deliveryCoordinates?.latitude,
         delivery_longitude: deliveryCoordinates?.longitude,
         pickup_date: orderDate,
@@ -657,41 +729,125 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-[#1C211E] uppercase tracking-wider flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-[#556B2F]" />
-                    Indirizzo di consegna oppure posizione attuale
+                    Dove vuoi ricevere l’ordine?
                   </label>
-                  <textarea
-                    rows={2}
-                    value={deliveryAddress}
-                    onChange={(event) => {
-                      setDeliveryAddress(event.target.value);
-                      if (errors.deliveryAddress) setErrors({ ...errors, deliveryAddress: undefined });
-                    }}
-                    placeholder="Via, numero civico, scala/interno, citofono"
-                    className={`w-full px-3.5 py-2.5 rounded-xl border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1B3B2B] ${
-                      errors.deliveryAddress ? 'border-red-500 ring-1 ring-red-500' : 'border-[#D8C3A5]'
-                    }`}
-                  />
-                  {errors.deliveryAddress && <p className="text-[11px] text-red-600 font-medium">{errors.deliveryAddress}</p>}
+                  <p className="text-xs leading-5 text-[#55705D]">
+                    Scegli la posizione attuale per farci trovare automaticamente strada e numero civico, oppure inserisci l’indirizzo a mano.
+                  </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleUseCurrentLocation}
-                  disabled={isLocating}
-                  className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#1B3B2B] hover:bg-[#28553E] disabled:opacity-60 text-white text-xs font-bold transition-colors"
-                >
-                  <Navigation className="w-4 h-4" />
-                  {isLocating ? 'Rilevamento posizione…' : 'Usa la mia posizione attuale'}
-                </button>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={switchToManualDeliveryAddress}
+                    className={`rounded-xl border px-3 py-3 text-left transition-all ${deliveryAddressMode === 'manual'
+                      ? 'border-[#1B3B2B] bg-white ring-2 ring-[#1B3B2B]/15'
+                      : 'border-[#D8C3A5] bg-[#FAF7F2] hover:border-[#1B3B2B]'}`}
+                  >
+                    <span className="flex items-center gap-2 text-sm font-bold text-[#1C211E]"><MapPin className="h-4 w-4 text-[#1B3B2B]" /> Inserisci indirizzo</span>
+                    <span className="mt-1 block text-[11px] leading-4 text-[#7A8A7E]">Via, civico, CAP e città</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    disabled={isLocating}
+                    className={`rounded-xl border px-3 py-3 text-left transition-all ${deliveryAddressMode === 'current'
+                      ? 'border-[#1B3B2B] bg-white ring-2 ring-[#1B3B2B]/15'
+                      : 'border-[#D8C3A5] bg-[#FAF7F2] hover:border-[#1B3B2B]'} disabled:cursor-wait disabled:opacity-60`}
+                  >
+                    <span className="flex items-center gap-2 text-sm font-bold text-[#1C211E]"><Navigation className="h-4 w-4 text-[#1B3B2B]" /> {isLocating ? 'Rilevamento…' : 'Usa posizione attuale'}</span>
+                    <span className="mt-1 block text-[11px] leading-4 text-[#7A8A7E]">Trova automaticamente la strada</span>
+                  </button>
+                </div>
 
+                {deliveryAddressMode === 'manual' ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-[1fr_7rem] gap-2">
+                      <input
+                        type="text"
+                        value={deliveryStreet}
+                        onChange={(event) => {
+                          setDeliveryStreet(event.target.value);
+                          setDeliveryCoordinates(null);
+                          clearDeliveryError();
+                        }}
+                        placeholder="Via / strada"
+                        className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3B2B] ${errors.deliveryAddress ? 'border-red-500 ring-1 ring-red-500' : 'border-[#D8C3A5]'}`}
+                        autoComplete="street-address"
+                      />
+                      <input
+                        type="text"
+                        value={deliveryHouseNumber}
+                        onChange={(event) => {
+                          setDeliveryHouseNumber(event.target.value);
+                          setDeliveryCoordinates(null);
+                          clearDeliveryError();
+                        }}
+                        placeholder="Civico"
+                        className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3B2B] ${errors.deliveryAddress ? 'border-red-500 ring-1 ring-red-500' : 'border-[#D8C3A5]'}`}
+                        autoComplete="address-line2"
+                      />
+                    </div>
+                    <div className="grid grid-cols-[7rem_1fr] gap-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={deliveryPostalCode}
+                        onChange={(event) => {
+                          setDeliveryPostalCode(event.target.value);
+                          setDeliveryCoordinates(null);
+                          clearDeliveryError();
+                        }}
+                        placeholder="CAP"
+                        className="w-full rounded-xl border border-[#D8C3A5] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3B2B]"
+                        autoComplete="postal-code"
+                      />
+                      <input
+                        type="text"
+                        value={deliveryCity}
+                        onChange={(event) => {
+                          setDeliveryCity(event.target.value);
+                          setDeliveryCoordinates(null);
+                          clearDeliveryError();
+                        }}
+                        placeholder="Città"
+                        className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3B2B] ${errors.deliveryAddress ? 'border-red-500 ring-1 ring-red-500' : 'border-[#D8C3A5]'}`}
+                        autoComplete="address-level2"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-emerald-200 bg-white p-3">
+                    {deliveryAddress ? (
+                      <>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Indirizzo trovato</p>
+                        <p className="mt-1 text-sm font-semibold leading-5 text-[#1C211E]">{deliveryAddress}</p>
+                        <p className="mt-1 text-[11px] text-[#55705D]">Controlla che strada e numero civico siano corretti prima di inviare l’ordine.</p>
+                      </>
+                    ) : (
+                      <p className="text-xs font-medium text-[#55705D]">Premi “Usa posizione attuale” e consenti l’accesso alla posizione.</p>
+                    )}
+                  </div>
+                )}
+
+                <input
+                  type="text"
+                  value={deliveryDetails}
+                  onChange={(event) => setDeliveryDetails(event.target.value)}
+                  placeholder="Scala, interno, citofono o indicazioni (opzionale)"
+                  className="w-full rounded-xl border border-[#D8C3A5] bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3B2B]"
+                  autoComplete="address-line2"
+                />
+
+                {errors.deliveryAddress && <p className="text-[11px] font-medium text-red-600">{errors.deliveryAddress}</p>}
+                {locationError && <p className="text-[11px] font-medium text-amber-800">{locationError}</p>}
                 {deliveryCoordinates && (
-                  <p className="text-xs text-emerald-800 font-medium">
-                    Posizione rilevata e allegata all’ordine: {deliveryCoordinates.latitude.toFixed(6)}, {deliveryCoordinates.longitude.toFixed(6)}
+                  <p className="text-[11px] font-medium text-emerald-800">
+                    Posizione confermata: il driver riceverà l’indirizzo e un pulsante per aprire la mappa.
                   </p>
                 )}
-                {locationError && <p className="text-[11px] text-amber-800 font-medium">{locationError}</p>}
                 <p className="text-[11px] text-[#55705D]">
-                  La posizione viene usata solo per comunicare il punto di consegna alla rosticceria tramite l’ordine.
+                  Non mostriamo più le coordinate al cliente: vengono conservate solo come supporto per la mappa del driver.
                 </p>
               </div>
             )}

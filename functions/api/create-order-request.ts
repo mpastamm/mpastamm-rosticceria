@@ -17,8 +17,11 @@ function validateOrder(order: any) {
   }
   if (!Array.isArray(order.items) || order.items.length === 0) throw new Error('Il carrello è vuoto');
   if (!['pickup', 'delivery'].includes(order.fulfillment_method)) throw new Error('Modalità di consegna non valida');
-  if (order.fulfillment_method === 'delivery' && !String(order.delivery_address || '').trim() && order.delivery_latitude == null) {
-    throw new Error('Per la consegna serve un indirizzo o una posizione GPS');
+  if (order.fulfillment_method === 'delivery' && !String(order.delivery_address || '').trim()) {
+    throw new Error('Per la consegna serve un indirizzo stradale completo');
+  }
+  if ((order.delivery_latitude == null) !== (order.delivery_longitude == null)) {
+    throw new Error('La posizione GPS della consegna non è completa');
   }
 }
 
